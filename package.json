@@ -33,6 +33,7 @@
 		"@finsemble/finsemble-cli": "5.3.*"
 	},
 	"dependencies": {
+		"@finsemble/finsemble-cli": "5.3.*",
 		"@finsemble/finsemble-core": "5.3.*",
 		"@finsemble/finsemble-electron-adapter": "5.3.*",
 		"@finsemble/finsemble-ui": "5.3.*",
@@ -40,7 +41,10 @@
 		"compression": "1.7.3",
 		"express": "4.16.4",
 		"react": "16.13.1",
-		"react-dom": "16.13.1"
+		"react-autosuggest": "^10.1.0",
+		"react-dom": "16.13.1",
+		"react-select": "^4.1.0",
+		"react-tabs": "^3.2.0"
 	},
 	"devDependencies": {
 		"@babel/core": "7.6.4",
@@ -67,8 +71,8 @@
 		"rimraf": "3.0.2",
 		"shelljs": "0.8.4",
 		"source-map-loader": "1.0.1",
-		"tree-kill": "1.2.2",
 		"style-loader": "2.0.0",
+		"tree-kill": "1.2.2",
 		"ts-loader": "^8.0.4",
 		"tslint": "6.1.3",
 		"typescript": "3.9.3",
