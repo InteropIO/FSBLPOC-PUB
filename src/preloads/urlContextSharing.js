@@ -2,7 +2,9 @@ const fdc3OnReady = (cb) => window.fdc3 ? cb : window.addEventListener("fdc3Read
 
 let state = {
     context: null,
-    processedInitialIntent: null
+    processedInitialIntent: null,
+    intent: "ViewChart",
+    context: "fdc3.instrument"
 };
 
 
@@ -20,7 +22,7 @@ const updateFromContext = (context, cb) => {
 const addIntentListener = () => {
     fdc3OnReady(
         () =>
-            fdc3.addIntentListener('ViewChart', (context) => {
+            fdc3.addIntentListener(state.intent, (context) => {
                 FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
                 if (state.processedInitialIntent && state.processedInitialIntent != state?.context?.id?.ticker
                     && state.processedInitialIntent == context?.id?.ticker) {
@@ -104,10 +106,7 @@ function createURL({ templateURL, queryParameter, contextValue }) {
  */
 function getStateFromUrl({ templateURL, queryParameter }) {
     let url = new URL(templateURL)
-    // let { pathname, searchParams } = url
     let { pathname, searchParams } = window.location
-    pathname
-    searchParams
 
     // get context from query params if exists
     if (queryParameter && searchParams.has(queryParameter)) {
@@ -115,8 +114,8 @@ function getStateFromUrl({ templateURL, queryParameter }) {
     }
     // use the template from config to get the contextValue from the pathname
     else if (url.pathname.includes("$$")) {
-        const contextIndex = url.pathname.split("/").indexOf("$$") /*?*/
-        return pathname.split("/")[contextIndex] /*?*/
+        const contextIndex = url.pathname.split("/").indexOf("$$")
+        return pathname.split("/")[contextIndex]
     } else {
         throw new Error("could not find state from the URL")
     }
@@ -189,6 +188,12 @@ const init = () => {
             }
         };
     }
+
+    // TODO: add the ability to use multiple int in the future
+    const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
+    if (intent) state.intent = intent
+    const context = contexts[0]
+    if (context) state.context = context
 
     restoreState();
 };
