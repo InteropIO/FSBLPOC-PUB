@@ -1,10 +1,14 @@
 {
-	"preload": {
-		"output": "preloads/nativeOverrides",
-		"entry": "./src/preloads/nativeOverrides.js"
-	},
-	"zoom": {
-		"output": "preloads/zoom",
-		"entry": "./src/preloads/zoom.js"
-	}
+  "preload": {
+    "output": "preloads/nativeOverrides",
+    "entry": "./src/preloads/nativeOverrides.js"
+  },
+  "zoom": {
+    "output": "preloads/zoom",
+    "entry": "./src/preloads/zoom.js"
+  },
+  "urlContextSharing": {
+    "output": "preloads/urlContextSharing",
+    "entry": "./src/preloads/urlContextSharing.js"
+  }
 }
