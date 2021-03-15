@@ -2,6 +2,64 @@
 	"comment": "Sample component configuration",
 	"$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/componentsFile.schema.json",
 	"components": {
+		"Stocktwits FDC3": {
+			"window": {
+				"url": "https://stocktwits.com/",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"templateURL": "https://stocktwits.com/symbol/$$",
+					"//queryParameter": "ticker"
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewChart",
+								"displayName": "ViewChart",
+								"contexts": [
+									"fdc3.instrument"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://stocktwits.com/favicon.png"
+					},
+					"Window Manager": {
+						"title": "StockTwits App",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
 		"Welcome Component": {
 			"window": {
 				"url": "$applicationRoot/components/welcome/welcome.html",
