@@ -12,13 +12,20 @@ const render = () =>
     document.getElementById('root')
   );
 
-// @ts-ignore
+
 // this code ensures that the FSBL library has been initialized
-if (window.FSBL && FSBL.addEventListener) {
-  // @ts-ignore
-  FSBL.addEventListener("onReady", render);
+// @ts-ignore
+if (window.e2o) {
+
+    // @ts-ignore
+    if (window.FSBL && FSBL.addEventListener) {
+    // @ts-ignore
+    FSBL.addEventListener("onReady", render);
+    } else {
+    window.addEventListener("FSBLReady", render);
+  }
 } else {
-  render()
+ render()
 }
 
 // If you want to start measuring performance in your app, pass a function

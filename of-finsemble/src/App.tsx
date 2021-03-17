@@ -5,8 +5,8 @@ import './App.css';
 function App() {
 
   useEffect(() => {
-    console.log("test")
-    console.log(window.fin.Window.me)
+
+    console.log("fin", fin.Window.me)
 
   }, [])
 

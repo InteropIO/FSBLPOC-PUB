@@ -82,7 +82,8 @@
               "$applicationRoot/configs/application/config.json"
           ],
           "trustedPreloads": [
-            "http://localhost:3375/preloads/urlContextSharing.js"
+            "http://localhost:3375/preloads/urlContextSharing.js",
+            "http://localhost:3375/preloads/openfinToFinsemble.js"
           ]
       },
       "finsemble-electron-adapter": {
