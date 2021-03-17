@@ -10,5 +10,9 @@
   "urlContextSharing": {
     "output": "preloads/urlContextSharing",
     "entry": "./src/preloads/urlContextSharing.js"
+  },
+  "openfinToFinsemble": {
+    "output": "preloads/openfinToFinsemble",
+    "entry": "./src/preloads/openfinToFinsemble.js"
   }
 }
