@@ -284,6 +284,41 @@
 					}
 				}
 			}
+		},
+		"defaultAuthentication": {
+			"window": {
+				"url": "$applicationRoot/components/defaultAuthentication/defaultAuthentication.html",
+				"top": "center",
+				"left": "center",
+				"width": 358,
+				"height": 192,
+				"ephemeral": true,
+				"autoShow": true
+			},
+			"component": {
+				"neededClients": [
+					"LauncherClient",
+					"AuthenticationClient",
+					"StorageClient"
+				],
+				"category": "system"
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": false
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"FSBLHeader": false,
+						"persistWindowState": false
+					}
+				}
+			}
 		}
 	}
 }
