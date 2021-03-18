@@ -12,18 +12,11 @@ const render = () =>
     document.getElementById('root')
   );
 
-
 // this code ensures that the FSBL library has been initialized
 // @ts-ignore
 if (window.e2o) {
-
     // @ts-ignore
-    if (window.FSBL && FSBL.addEventListener) {
-    // @ts-ignore
-    FSBL.addEventListener("onReady", render);
-    } else {
-    window.addEventListener("FSBLReady", render);
-  }
+  window.addEventListener("preload-ready", render);
 } else {
  render()
 }
