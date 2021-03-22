@@ -1,4 +1,13 @@
 {
-	"$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/servicesFile.schema.json",
-	"services": {}
+    "$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/servicesFile.schema.json",
+    "services": {
+        "coinDeskSearchService": {
+            "bootParams": {
+                "stage": "preuser",
+                "dependencies": []
+            },
+            "name": "coinDeskSearchService",
+            "html": "$applicationRoot/services/coinDeskSearch/coinDeskSearch.html"
+        }
+    }
 }
