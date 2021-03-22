@@ -1,4 +1,5 @@
 const Finsemble = require("@finsemble/finsemble-core");
+const FDC3Client = require("../FDC3/FDC3Client").default;
 
 Finsemble.Clients.Logger.start();
 Finsemble.Clients.Logger.log("coinDeskSearch Service starting up");
@@ -7,14 +8,14 @@ Finsemble.Clients.Logger.log("coinDeskSearch Service starting up");
 // Finsemble.Clients.AuthenticationClient.initialize();
 // Finsemble.Clients.ConfigClient.initialize();
 // Finsemble.Clients.DialogManager.initialize();
-// Finsemble.Clients.DistributedStoreClient.initialize();
+Finsemble.Clients.DistributedStoreClient.initialize();
 // Finsemble.Clients.DragAndDropClient.initialize();
 // Finsemble.Clients.LauncherClient.initialize();
-// Finsemble.Clients.LinkerClient.initialize();
+Finsemble.Clients.LinkerClient.initialize();
 // Finsemble.Clients.HotkeyClient.initialize();
 Finsemble.Clients.SearchClient.initialize();
 // Finsemble.Clients.StorageClient.initialize();
-// Finsemble.Clients.WindowClient.initialize();
+Finsemble.Clients.WindowClient.initialize();
 // Finsemble.Clients.WorkspaceClient.initialize();
 
 /**
@@ -35,14 +36,14 @@ class coinDeskSearchService extends Finsemble.baseService {
 					// "authenticationClient",
 					// "configClient",
 					// "dialogManager",
-					// "distributedStoreClient",
+					"distributedStoreClient",
 					// "dragAndDropClient",
 					// "hotkeyClient",
 					// "launcherClient",
-					// "linkerClient",
-					"searchClient"
+					"linkerClient",
+					"searchClient",
 					// "storageClient",
-					// "windowClient",
+				    "windowClient"
 					// "workspaceClient",
 				],
 			},
@@ -58,18 +59,32 @@ class coinDeskSearchService extends Finsemble.baseService {
 	 * @param {function} callback
 	 */
 	readyHandler(callback: () => void) {
-		this.customSearchFunction();
-		Finsemble.Clients.Logger.log("coinDeskSearch Service ready");
+		this.fdc3Ready(this.customSearchFunction);
+		
 		callback();
 	}
 
-	customSearchFunction() {
+    /**
+         * Initialize FDC3 - wait for fdc3 to be ready
+         * @param  {...function} fns - functions to be executed when fdc3 is ready
+         */
+    fdc3Ready(...fns: any) {
+        // add any functionality that requires FDC3 in here
+        this.FDC3Client = new FDC3Client(Finsemble);
+        window.addEventListener("fdc3Ready", () => fns.map((fn: any) => fn()));
+    }
+
+    async customSearchFunction() {
+
+        let channel = await fdc3.getOrCreateChannel("searchContextChannel"); 
+
+// TODO - delete dead code, describe what is being done, implement the component to render (see Kris' Slack)
 
 		Finsemble.Clients.SearchClient.register(
             {
               name: "CoinDesk", // The name of the provider
               searchCallback: coinDeskSearch, // A function called when a search is initialized
-              // itemActionCallback: searchResultActionCallback, // (optional) A function that is called when an item action is fired
+              itemActionCallback: searchResultActionCallback, // (optional) A function that is called when an item action is fired
               providerActionTitle: "My Provider action title", // (optional) The title of the provider action
               // providerActionCallback: providerActionCallback,
               //(optional) A function that is called when a provider action is fired
@@ -80,9 +95,29 @@ class coinDeskSearchService extends Finsemble.baseService {
                 Finsemble.Clients.Logger.log("SEARCH: CoinDesk - Registration succeeded");
               }
             }
-          );
-
-		/**
+        );
+        Finsemble.Clients.Logger.log("coinDeskSearch Service ready");
+		function searchResultActionCallback(params: any){
+            // result = {
+            //     name: data.bpi[symbolUpper].code,
+            //     score: 100,
+            //     type: "Application",
+            //     description:  data.bpi[symbolUpper].description,
+            //     actions: [{ name: "Broadcast" }],
+            //     tags: []
+            // }
+            const {name, description} = params;
+            const instrument = {
+                type: 'fdc3.instrument',
+                name: description,
+                id: {
+                    ticker: name
+                }
+            };
+            channel.broadcast(instrument);
+        }
+        
+        /**
          *
          * @param params query string
          * @param callback
@@ -108,7 +143,7 @@ class coinDeskSearchService extends Finsemble.baseService {
                 "method": "GET",
                 "headers": {}
             })
-                .then(response => response.json()) // TODO: use await
+                .then(response => response.json()) 
                 .then(data => {
                 console.log(symbolUpper)
                 console.log(data)
@@ -117,7 +152,7 @@ class coinDeskSearchService extends Finsemble.baseService {
                     score: 100,
                     type: "Application",
                     description:  data.bpi[symbolUpper].description,
-                    actions: [{ name: "Spawn" }],
+                    actions: [{ name: "Broadcast" }],
                     tags: []
                 }
                 callback(null, [result])
