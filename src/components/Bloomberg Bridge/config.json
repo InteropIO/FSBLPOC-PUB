@@ -28,7 +28,7 @@
 				},
 				"components": {
 					"App Launcher": {
-						"launchableByUser": true
+						"launchableByUser": false
 					},
 					"Window Manager": {
 						"persistWindowState": false,
@@ -58,7 +58,7 @@
 				"width": 300
 			},
 			"component": {
-				"spawnOnStartup": false
+				"spawnOnStartup": true
 			},
 			"foreign": {
 				"services": {
@@ -69,7 +69,7 @@
 				},
 				"components": {
 					"App Launcher": {
-						"launchableByUser": true
+						"launchableByUser": false
 					},
 					"Window Manager": {
 						"persistWindowState": false,
