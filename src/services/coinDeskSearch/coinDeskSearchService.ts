@@ -7,19 +7,10 @@ let UIReady = false;
 Finsemble.Clients.Logger.start();
 Finsemble.Clients.Logger.log("coinDeskSearch Service starting up");
 
-// Add and initialize any other clients you need to use (services are initialized by the system, clients are not):
-// Finsemble.Clients.AuthenticationClient.initialize();
-// Finsemble.Clients.ConfigClient.initialize();
-// Finsemble.Clients.DialogManager.initialize();
 Finsemble.Clients.DistributedStoreClient.initialize();
-// Finsemble.Clients.DragAndDropClient.initialize();
-// Finsemble.Clients.LauncherClient.initialize();
 Finsemble.Clients.LinkerClient.initialize();
-// Finsemble.Clients.HotkeyClient.initialize();
 Finsemble.Clients.SearchClient.initialize();
-// Finsemble.Clients.StorageClient.initialize();
 Finsemble.Clients.WindowClient.initialize();
-// Finsemble.Clients.WorkspaceClient.initialize();
 
 //Setup the BloombergBridgeClient that will be used for all messaging to/from Bloomberg
 const bbg = new BloombergBridgeClient(Finsemble.Clients.RouterClient, Finsemble.Clients.Logger);
@@ -30,7 +21,9 @@ const bbg = new BloombergBridgeClient(Finsemble.Clients.RouterClient, Finsemble.
 let connectedToBbg = false;
 
 /**
- * Add service description here
+ * Service takes in parameters from Finsemble search in the format "coindesk:TICKER" and 
+ *  searches against the coindesk API with TICKER, returns the details to the search box
+ *  if it successfully finds details.
  */
 class coinDeskSearchService extends Finsemble.baseService {
     FDC3Client: FDC3Client | null = null;
@@ -46,18 +39,10 @@ class coinDeskSearchService extends Finsemble.baseService {
 				// dependency. Any clients listed as a dependency must be initialized at the top of this file for your
 				// service to startup.
 				clients: [
-					// "authenticationClient",
-					// "configClient",
-					// "dialogManager",
 					"distributedStoreClient",
-					// "dragAndDropClient",
-					// "hotkeyClient",
-					// "launcherClient",
 					"linkerClient",
 					"searchClient",
-					// "storageClient",
 				    "windowClient"
-					// "workspaceClient",
 				],
 			},
 		});
@@ -65,9 +50,8 @@ class coinDeskSearchService extends Finsemble.baseService {
 
 
 		this.readyHandler = this.readyHandler.bind(this);
-        this.setupConnectionLifecycleChecks = this.setupConnectionLifecycleChecks.bind(this);
-        this.checkConnection = this.checkConnection.bind(this);
-
+    this.setupConnectionLifecycleChecks = this.setupConnectionLifecycleChecks.bind(this);
+    this.checkConnection = this.checkConnection.bind(this);
 		this.onBaseServiceReady(this.readyHandler);
 	}
 
@@ -82,29 +66,26 @@ class coinDeskSearchService extends Finsemble.baseService {
 	}
 
     /**
-         * Initialize FDC3 - wait for fdc3 to be ready
-         * @param  {...function} fns - functions to be executed when fdc3 is ready
-         */
+     * Initialize FDC3 - wait for fdc3 to be ready
+     * @param  {...function} fns - functions to be executed when fdc3 is ready
+     */
     fdc3Ready(...fns: any) {
-        window.FSBL = {};
-		window.FSBL.Clients = Finsemble.Clients;
-        this.FDC3Client = new FDC3Client(Finsemble);
-        window.addEventListener("fdc3Ready", () => fns.map((fn: any) => fn()));
-    }
+        //@ts-ignore
+		    window.FSBL = {};
+		    window.FSBL.Clients = Finsemble.Clients;
+		    this.FDC3Client = new FDC3Client(Finsemble);
+		    window.addEventListener("fdc3Ready", () => fns.map((fn: any) => fn()));
+	}
+
 
     async customSearchFunction() {
-
         let channel = await fdc3.getOrCreateChannel("searchContextChannel"); 
-
-// TODO - delete dead code, describe what is being done, implement the component to render (see Kris' Slack)
 
 		Finsemble.Clients.SearchClient.register(
             {
               name: "CoinDesk", // The name of the provider
               searchCallback: coinDeskSearch, // A function called when a search is initialized
               itemActionCallback: searchResultActionCallback, // (optional) A function that is called when an item action is fired
-              // providerActionTitle: "My Provider action title", // (optional) The title of the provider action
-              // providerActionCallback: providerActionCallback //(optional) A function that is called when a provider action is fired
             },
             function (err: any) {
               if (err) { Finsemble.Clients.Logger.error(err) }
@@ -114,49 +95,58 @@ class coinDeskSearchService extends Finsemble.baseService {
             }
         );
         Finsemble.Clients.Logger.log("coinDeskSearch Service ready");
-		
         
         /**
          *
          * @param params query string
          * @param callback
          */
-
         function coinDeskSearch(params: { text: string, windowName: string }, callback: Function) {
             Finsemble.Clients.Logger.log("CUSTOM SEARCH PARAMS", params);
-        
-            // user will need to type "coindesk:GBP" in to the search bar
-            if (params.text.toLowerCase().includes("coindesk:")) {
-                // only get the city from the string
+            // This is showing that search services can be namespaced if you want to use many of them
+            //  and distinguish them from each other, but it is not mandatory. This example is using
+            //  "coindesk:" as its namespace.
+            if (params.text.toLowerCase().includes("coindesk:") &&  params.text.toLowerCase().replace("coindesk:", "").trim().length > 0) {
                 const searchText = params.text.toLowerCase().replace("coindesk:", "")
                 const symbol = searchText.trim()
-            
-                
-                // https://cors-anywhere.herokuapp.com/
-                const symbolUpper = symbol.toUpperCase()
                 const url = `https://api.coindesk.com/v1/bpi/currentprice/${symbol}.json`
-                console.log(url)
                 fetch(url, {
                     "method": "GET",
                     "headers": {}
                 })
-                    .then(response => response.json()) 
+                    .then(response => {
+                        console.log(response)
+                        if (response.ok) {
+                         return response.json()
+                        }
+                    })
                     .then(data => {
-                    console.log(symbolUpper)
-                    console.log(data)
-                    const result = {
-                        name: data.bpi[symbolUpper].code,
-                        score: 100,
-                        type: "Currency",
-                        description:  data.bpi[symbolUpper].description,
-                        actions: [{ name: "Broadcast" }],
-                        tags: []
-                    }
-                    callback(null, [result])
-                });
-            
-            // coindesk call response
-            /*    {
+                        if (data) {
+                            const results = [];
+                            for (const tickerSymbol in data.bpi){
+                                const result = {
+                                    name: data.bpi[tickerSymbol].code,
+                                    // This is a sort order for how they are displayed on the search dropdown.
+                                    // 0 comes first, 100 is last
+                                    // Something like a Levenshtein or Hamming distance
+                                    //  could then be scaled into that range to denote liklihood
+                                    //  the item is what was typed - where 0 is a closer match, so comes first.
+                                    // Not relevant to all API return types.
+                                    // The API example here, this is not relative, so just using 100 always.
+                                    score: 100, 
+                                    type: "Application",
+                                    description:  data.bpi[tickerSymbol].description,
+                                    actions: [{ name: "Broadcast" }],
+                                    tags: []
+                                }
+                                results.push(result)
+                            }
+                            callback(null, results)
+                        }
+                }).catch((error) => {});
+                       
+                // example coindesk call response
+                /*    {
                     "time": {
                     "updated": "Mar 19, 2021 17:15:00 UTC",
                     "updatedISO": "2021-03-19T17:15:00+00:00",
@@ -177,9 +167,7 @@ class coinDeskSearchService extends Finsemble.baseService {
                         "rate_float": 42418.7796
                     }
                     }
-                } */
-        
-            
+                } */            
             }
         }
 
@@ -257,5 +245,4 @@ class coinDeskSearchService extends Finsemble.baseService {
 }
 
 const serviceInstance = new coinDeskSearchService();
-
 serviceInstance.start();

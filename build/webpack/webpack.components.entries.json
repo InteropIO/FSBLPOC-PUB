@@ -1,1 +1,6 @@
-{}
+{
+    "searchFDC3BroadcastViewer": {
+        "output": "components/searchFDC3BroadcastViewer/searchFDC3BroadcastViewer",
+        "entry": "./src/components/searchFDC3BroadcastViewer/src/index.tsx"
+    }
+}
