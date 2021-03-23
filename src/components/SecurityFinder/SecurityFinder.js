@@ -82,7 +82,7 @@ class SecurityFinder extends React.Component {
 		FSBL.Clients.BloombergBridgeClient.checkConnection((err, resp) => {
 			if (!err && resp === true) {
 				if (!this.state.isConnected) {
-					//we are connecting, setup LaunchPad group lsiteners
+					//we are connecting, setup LaunchPad group listeners
 					this.getLaunchPadGroups();
 					this.setupGroupEventListener();
 				}

@@ -5,8 +5,8 @@ that is imported, which means that any CSS in this file will *override* Finsembl
 See https://documentation.chartiq.com/finsemble/tutorial-UIComponents.html#css
 */
 
-:root {
-	/*
+/* :root {
+
     --core-primary: #22262f;
 
     --core-primary-1: #171A20;
@@ -41,5 +41,164 @@ See https://documentation.chartiq.com/finsemble/tutorial-UIComponents.html#css
     --font-weight-2: bold;
 
     --font-size: 12px;
+
+} */
+
+/**
+`theme.css` is imported into all of Finsemble's UI components. It is the very last piece of CSS
+that is imported, which means that any CSS in this file will *override* Finsemble's default CSS.
+See https://documentation.chartiq.com/finsemble/tutorial-UIComponents.html#css
 */
+
+
+:root {
+
+	/* ---- CHANGE THESE VALUES FOR LIGHT AND DARK THEME ----*/
+	--main-light: #ffffffff;
+	--main-dark: #012169; /* -- 021c4e -- */
+	--primary-color:var(--main-dark);
+	--secondary-color:var(--main-light);
+	--tertiary-color:#1d66a5;
+	--accent-color: #bf1b53;
+	--accent-color-lighter:#c0476f;
+	--accent-color-transparency:#bf1b5275;
+
+	--primary-background-color: var(--primary-color);
+	--secondary-background-color:  #012169; /* -- 2f4766 -- */
+	/* -------------------------------------------------- */
+
+	/* buttons */
+	--primary-button-color:var(--secondary-color);
+	--primary-button-color-hover: var(--tertiary-color);
+	--secondary-button-color: var(--accent-color);
+	--secondary-button-color-hover: var(--accent-color-transparency);
+	--secondary-button-affirmative-background-hover-color: var(--accent-color-lighter);
+
+	/* scrollbar */
+	--scrollbar-color: white;
+
+	/* font styles */
+	--font-family: "CSTypeEP", sans-serif;
+	--font-color: var(--secondary-color);
+	--font-color-1: var(--secondary-color);
+	--font-color-2: var(--font-color);
+	--font-weight: 600;
+	--font-weight-1: 400;
+	--font-weight-2: bold;
+	--font-size: 12px;
+
+	/* titlebar, toolbar and menu backgrounds - call this background color */
+	--core-primary: var(--primary-background-color);
+	/* background for linker menu, welcome component, preferences */
+	--core-primary-1: var(--secondary-background-color);
+	/* preferences button hovers & preferences bar */
+	--core-primary-2: var(--secondary-background-color);
+	/* hover colour for the toolbar buttons and dividers */
+	--core-primary-3: var(--primary-button-color-hover);
+	/* contrast colour - default workspaces menu ~~text~~ icon */
+	--core-primary-4: rgb(31, 112, 167);
+	/* secondary text, stars for menus, boxes in preferences, text for the titlebar */
+	--core-primary-5: var(--secondary-color);
+
+	/* underlines, favourite button stars, search text, welcome button, titlebar icon? */
+	--accent-primary: var(--secondary-button-color);
+	/* favourite button clicks, active toolbar icon colour , Welcome button hover */
+	--accent-primary-1: var(--secondary-button-color-hover);
+
+	/* not sure where this is used */
+	--accent-primary-2: #398bff;
+
+	/* not sure where these two are used either */
+	--accent-positive: #2cc13f;
+	--accent-positive-1: #27ae38;
+
+	/* this is used on some secondary text areas where they need to stand out (Preferences) */
+	--accent-aware: #b67814;
+	--accent-aware-1: #dc951f;
+
+	/* Unsure where these are used */
+	--accent-negative: #f26666;
+	--accent-negative-1: #da5c5c;
+}
+.custom-icons path {
+	fill: var(--primary-button-color);
+}
+.finsemble-toolbar {
+	text-shadow: none;
+	font-size: 13px;
+	font-weight: 500;
+}
+
+.fsbl-tab-title {
+	text-align: left;
+	text-shadow: none;
+	color: var(--titlebar-tab-inactive-font-color);
+	align-items: center;
+	font-weight: 500;
+	font-size: 13px;
+}
+
+.menu {
+	background: var(--menu-content-background-color);
+	color: var(--menu-font-color);
+	padding: 10px 0;
+	font-size: 13px;
+	font-weight: 500;
+}
+.workspace-name{
+	font-size: 13px;
+	font-weight: 500;
+}
+
+button:hover {
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background-color: var(--button-affirmative-background-color) !important;
+	background: linear-gradient(
+		180deg,
+		var(--button-affirmative-background-color) 0%,
+		var(--accent-color-lighter) 100%
+	);
+}
+
+.fsbl-button-affirmative:hover {
+	transition: all 0.8s ease;
+	border: 1px solid var(--button-affirmative-border-color);
+	background-color: var(--button-affirmative-background-color);
+	background: linear-gradient(
+		180deg,
+		var(--button-affirmative-background-color) 0%,
+	var(--accent-color-lighter) 100%
+	);
+}
+
+/* system tray background */
+body.system-tray--custom {
+	background-color: var(--primary-background-color);
+}
+
+/* linker channel menu font */
+.channel-label {
+	text-shadow: none;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--font-color-2);
+}
+
+/* linker icon */
+#FSBLHeader
+	> div
+	> div.fsbl-header-left
+	> div
+	> div.fsbl-icon.fsbl-linker
+	> svg
+	> g
+	> use {
+	fill:var(--primary-button-color);
+	filter: NONE;
+}
+
+/* make the font icons in the toolbar darker */
+[class^="ff-"]:before, [class*=" ff-"]:before {
+	font-weight: 900 !important;
 }
