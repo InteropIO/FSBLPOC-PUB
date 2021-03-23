@@ -1,4 +1,4 @@
-import * as Finsemble from "@finsemble/finsemble-core";
+const Finsemble = require("@finsemble/finsemble-core");
 import FDC3Client from "../FDC3/FDC3Client";
 import BloombergBridgeClient from "../../clients/BloombergBridgeClient/BloombergBridgeClient";
 
