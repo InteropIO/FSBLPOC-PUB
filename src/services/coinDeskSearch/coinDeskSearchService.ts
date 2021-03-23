@@ -1,5 +1,8 @@
 const Finsemble = require("@finsemble/finsemble-core");
-const FDC3Client = require("../FDC3/FDC3Client").default;
+import FDC3Client from "../FDC3/FDC3Client";
+import BloombergBridgeClient from "../../clients/BloombergBridgeClient/BloombergBridgeClient";
+
+let UIReady = false;
 
 Finsemble.Clients.Logger.start();
 Finsemble.Clients.Logger.log("coinDeskSearch Service starting up");
@@ -9,12 +12,22 @@ Finsemble.Clients.LinkerClient.initialize();
 Finsemble.Clients.SearchClient.initialize();
 Finsemble.Clients.WindowClient.initialize();
 
+//Setup the BloombergBridgeClient that will be used for all messaging to/from Bloomberg
+const bbg = new BloombergBridgeClient(Finsemble.Clients.RouterClient, Finsemble.Clients.Logger);
+/** Flag used to track whether we are currently connected to a Bloomberg terminal.
+ * Both the Bloomberg terminal and the BloombergBridge must be runnign for this 
+ * to be true.
+ */
+let connectedToBbg = false;
+
 /**
  * Service takes in parameters from Finsemble search in the format "coindesk:TICKER" and 
  *  searches against the coindesk API with TICKER, returns the details to the search box
  *  if it successfully finds details.
  */
 class coinDeskSearchService extends Finsemble.baseService {
+    FDC3Client: FDC3Client | null = null;
+
 	/**
 	 * Initializes a new instance of the coinDeskSearchService class.
 	 */
@@ -34,7 +47,11 @@ class coinDeskSearchService extends Finsemble.baseService {
 			},
 		});
 
+
+
 		this.readyHandler = this.readyHandler.bind(this);
+    this.setupConnectionLifecycleChecks = this.setupConnectionLifecycleChecks.bind(this);
+    this.checkConnection = this.checkConnection.bind(this);
 		this.onBaseServiceReady(this.readyHandler);
 	}
 
@@ -43,7 +60,8 @@ class coinDeskSearchService extends Finsemble.baseService {
 	 * @param {function} callback
 	 */
 	readyHandler(callback: () => void) {
-		this.fdc3Ready(this.customSearchFunction);		
+		this.fdc3Ready(this.customSearchFunction);
+		this.setupConnectionLifecycleChecks();
 		callback();
 	}
 
@@ -53,11 +71,12 @@ class coinDeskSearchService extends Finsemble.baseService {
      */
     fdc3Ready(...fns: any) {
         //@ts-ignore
-		window.FSBL = {};
-		window.FSBL.Clients = Finsemble.Clients;
-		this.FDC3Client = new FDC3Client(Finsemble);
-		window.addEventListener("fdc3Ready", () => fns.map((fn: any) => fn()));
+		    window.FSBL = {};
+		    window.FSBL.Clients = Finsemble.Clients;
+		    this.FDC3Client = new FDC3Client(Finsemble);
+		    window.addEventListener("fdc3Ready", () => fns.map((fn: any) => fn()));
 	}
+
 
     async customSearchFunction() {
         let channel = await fdc3.getOrCreateChannel("searchContextChannel"); 
@@ -76,18 +95,6 @@ class coinDeskSearchService extends Finsemble.baseService {
             }
         );
         Finsemble.Clients.Logger.log("coinDeskSearch Service ready");
-		function searchResultActionCallback(params: any){
-            const {name, description} = params.item;
-            const instrument = {
-                type: 'fdc3.instrument',
-                name: description,
-                id: {
-                    ticker: name
-                }
-            };
-            // FDC3 broadcast of our instrument that was prepped above
-            channel.broadcast(instrument);
-        }
         
         /**
          *
@@ -137,8 +144,7 @@ class coinDeskSearchService extends Finsemble.baseService {
                             callback(null, results)
                         }
                 }).catch((error) => {});
-                
-            
+                       
                 // example coindesk call response
                 /*    {
                     "time": {
@@ -164,7 +170,78 @@ class coinDeskSearchService extends Finsemble.baseService {
                 } */            
             }
         }
+
+        function searchResultActionCallback(params: any){
+            //Push context to the FDC3 Channel we setup a reference to
+            Finsemble.Clients.Logger.log(`searchResultActionCallback called with params: `, params);
+            const {item, action} = params;
+            const instrument = {
+                type: 'fdc3.instrument',
+                name: item.description,
+                id: {
+                    ticker: item.name
+                }
+            };
+            channel.broadcast(instrument);
+
+            //Also push context to (all) Bloomberg Launchpad groups
+            const bbgSecurity = item.name + " Curncy";
+            if (connectedToBbg){
+                bbg.runGetAllGroups((err, response) => {
+                    if (response && response.groups && Array.isArray(response.groups)) {
+                        Finsemble.Clients.Logger.log(`Setting context '${bbgSecurity}' on launchpad groups: `, response.groups);
+                        //cycle through all launchpad groups
+                        response.groups.forEach(group => {
+                            //TODO: may want to check group.type and only apply to type == security groups
+                            //Set group's context
+                                //N.b. this is replying on Bloomberg to resolve the name to a valid Bloomberg security string (e.g. TSLA = TSLA US Equity)
+                             bbg.runSetGroupContext(group.name, bbgSecurity, null, (err, data) => {
+                                if (err) {
+                                    Finsemble.Clients.Logger.error(`Error received from runSetGroupContext, group: ${group.name}, value: ${bbgSecurity}, error: `, err);
+                                }
+                            });
+                        });
+                    } else if (err) {
+                        Finsemble.Clients.Logger.error("Error received from runGetAllGroups:", err);
+                    } else {
+                        Finsemble.Clients.Logger.error("invalid response from runGetAllGroups", response);
+                    }
+                });
+            } else {
+                Finsemble.Clients.Logger.warn("Context not shared to Bllomberg as we are not connected to the terminal");
+            }
+        }
     }
+
+    //-----------------------------------------------------------------------------------------
+    // Functions related to Bloomberg connection status
+    // Used to enable/disable calls to send context to launchpad automatically
+    //-----------------------------------------------------------------------------------------
+    setupConnectionLifecycleChecks = () => { 
+        //do the initial check
+        this.checkConnection();
+        //listen for connection events (listen/transmit)
+        bbg.setConnectionEventListener(this.checkConnection);
+        //its also possible to poll for connection status,
+        //  worth doing in case the bridge process is killed off and doesn't get a chance to send an update
+        setInterval(this.checkConnection, 30000);
+    };
+
+    checkConnection = () => {
+        bbg.checkConnection((err, resp) => { 
+            if (!err && resp === true) {
+                connectedToBbg = true;
+            } else if (err) {
+                Finsemble.Clients.Logger.error("Error received when checking connection", err);
+                connectedToBbg = false;
+            } else {
+                Finsemble.Clients.Logger.debug("Negative response when checking connection: ", resp);
+                connectedToBbg = false;
+            }
+        });
+    };
+    //-----------------------------------------------------------------------------------------
+    
 }
 
 const serviceInstance = new coinDeskSearchService();

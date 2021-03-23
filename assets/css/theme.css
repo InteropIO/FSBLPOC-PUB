@@ -202,3 +202,27 @@ body.system-tray--custom {
 [class^="ff-"]:before, [class*=" ff-"]:before {
 	font-weight: 900 !important;
 }
+
+.search-menu .menu-item {
+	height: auto;
+	min-height: 32px;
+}
+
+.search-menu .menu-item-row {
+	flex-wrap: wrap;
+}
+
+.search-actions {
+	margin-left: 4px;
+}
+
+.actionButton {
+	font-size: 11px;
+	border-radius: 15px;
+    padding: 4px;
+	margin: 0px 1px 0px 1px;
+}
+
+.actionButton:hover {
+	background: var(--accent-primary-2);
+}
