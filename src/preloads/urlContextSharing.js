@@ -296,6 +296,7 @@ const saveStateAndNavigate = (newContext) => {
         setTimeout(() => {
             const context = state.context
             const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
+            // TODO: does the URL string need to be urlEncoded?
             window.location.href = createURLUsingContextValues(fdc3ToURLTemplate, context);
         }, 1);
     });
@@ -339,9 +340,8 @@ const restoreState = () => {
 
 const init = () => {
 
-    const { templateURL, queryParameter } = FSBL.Clients.WindowClient.options.customData.component.custom
-    // TODO: update
-    state.context = getContextStateFromUrl({ templateURL, queryParameter });
+    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
+    state.context = getContextStateFromUrl(fdc3ToURLTemplate);
 
     // TODO: add the ability to use multiple int in the future
     const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];

@@ -22,8 +22,25 @@
 					"$applicationRoot/preloads/urlContextSharing.js"
 				],
 				"custom": {
-					"templateURL": "https://stocktwits.com/symbol/$$",
-					"//queryParameter": "ticker"
+					"fdc3ToURLTemplate": {
+						"//exampleURL": "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E",
+						"urlTemplate": "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
+						"fdc3ContextType": "fdc3.instrument",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "id.ticker"
+							},
+							{
+								"templateKey": "$2",
+								"contextKey": "name"
+							},
+							{
+								"templateKey": "$3",
+								"contextKey": "id.CUSIP"
+							}
+						]
+					}
 				}
 			},
 			"foreign": {
