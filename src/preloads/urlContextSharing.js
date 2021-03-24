@@ -7,6 +7,34 @@ let state = {
     context: "fdc3.instrument"
 };
 
+//========== utility functions
+
+// This is the same as lodash's ._set function https://youmightnotneed.com/lodash/#set
+function set(obj, path, value) {
+    // Regex explained: https://regexr.com/58j0k
+    const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
+
+    pathArray.reduce((acc, key, i) => {
+        if (acc[key] === undefined) acc[key] = {}
+        if (i === pathArray.length - 1) acc[key] = value
+        return acc[key]
+    }, obj)
+}
+
+// This is the same as lodash's ._get function https://youmightnotneed.com/lodash/#get
+function get(obj, path, defValue) {
+    // If path is not defined or it has false value
+    if (!path) return undefined
+    // Check if path is string or array. Regex : ensure that we do not have '.' and brackets.
+    // Regex explained: https://regexr.com/58j0k
+    const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
+    // Find value if exist return otherwise return undefined value;
+    return (
+        pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj) || defValue
+    )
+}
+
+  // =======end utility functions
 
 const updateFromContext = (context, cb) => {
     FSBL.Clients.Logger.log("Updating from context: ", context);
@@ -63,64 +91,198 @@ const getUrlPathOrParamsFromConfig = () => {
 }
 
 /**
- * Config drives url template parameters and replace with context contextValue
- * ```javascript
- * const url = createURL({
-  templateURL: "https://stocktwits.com/symbol/$$/?q=p&p=$$",
-  queryParameter: "p",
-  contextValue:"AAPL"
-})
- * // url = "https://stocktwits.com/symbol/AAPL/?q=p&p=AAPL"
- * ```
- * @param object
- * @returns new url string
+ *
+ * @param {string} type the fdc3 type
+ * @returns an object template for the context type
+ * `getContextTemplate("fdc3.context")`
  */
-function createURL({ templateURL, queryParameter, contextValue }) {
-    const url = new URL(templateURL)
-    let { pathname, searchParams } = url
+function getContextTemplate(type) {
+    switch (type) {
+        case "fdc3.contact":
+            return {
+                type: 'fdc3.contact'
+            }
+        case "fdc3.contactList":
+            return {
+                type: 'fdc3.contactList',
+                contacts: []
+            }
+        case "fdc3.country":
+            return {
+                type: 'fdc3.country'
+            }
+        case "fdc3.instrument":
+            return {
+                "type": "fdc3.instrument",
+                "id": {}
+            }
+        case "fdc3.instrumentList":
+            return {
+                type: 'fdc3.instrumentList',
+                instruments: []
+            }
+        case "fdc3.organization":
+            return {
+                type: 'fdc3.organization'
+            }
+        case "fdc3.position":
+            return {
+                type: 'fdc3.position',
+                instrument: {
+                    type: "fdc3.instrument"
+                },
+                holding: 2000000
+            }
+        case "fdc3.portfolio":
+            return {
+                type: 'fdc3.portfolio',
+                positions: []
+            }
 
-    // set the search parameter from context if it's supplied as a template from config
-    if (queryParameter && searchParams.has(queryParameter)) {
-        searchParams.set(queryParameter, contextValue)
+        default:
+            return {
+                "type": "fdc3.instrument",
+                "id": {}
+            }
+
     }
-    // if the config has a template URL replace it for the contextValue
-    if (pathname.includes("$$")) {
-        url.pathname = pathname.replace("$$", contextValue)
-    }
-    return url.toString()
+
 }
 
 
 /**
- * Using the config template URL and Parameters to get context data from window url
+ * Get the state from the URL using the template objects
+ * @param {object} fdc3ToURLTemplate
+ * @param {string} urlParam
+ * @returns {object} context data
+ * @example
  * ```javascript
- * // page url = https://stocktwits.com/symbol/AAPL/?q=p&p=AAPL
- * const contextValue = createURL({
-  templateURL: "https://stocktwits.com/symbol/$$/?q=p&p=$$",
-  parameter: "p"
-})
-// contextValue = AAPL
- * ```
- * @param Object
- * @returns contextValue
- */
-function getStateFromUrl({ templateURL, queryParameter }) {
-    let url = new URL(templateURL)
-    let { pathname, searchParams } = window.location
-
-    // get context from query params if exists
-    if (queryParameter && searchParams.has(queryParameter)) {
-        return searchParams.get(queryParameter)
+ *
+const fdc3ToURLTemplate = {
+  urlTemplate: "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
+  fdc3ContextType: "fdc3.instrument",
+  templates: [
+    {
+      templateKey: "$1",
+      contextKey: "id.ticker"
+    },
+    {
+      templateKey: "$2",
+      contextKey: "name"
+    },
+    {
+      templateKey: "$3",
+      contextKey: "id.CUSIP"
     }
-    // use the template from config to get the contextValue from the pathname
-    else if (url.pathname.includes("$$")) {
-        const contextIndex = url.pathname.split("/").indexOf("$$")
-        return pathname.split("/")[contextIndex]
-    } else {
-        throw new Error("could not find state from the URL")
-    }
+  ]
 }
 
+const url = "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E" || window.location.href
+
+ * getContextStateFromUrl(fdc3ToURLTemplate, url)
+ * ```
+ */
+function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, urlParam = window.location.href) {
+    const template = new URL(urlTemplate)
+    const url = new URL(urlParam)
+
+    const getParamsFromTemplateURL = (param) => {
+        const res = Array.from(template.searchParams.entries()).filter(([key, value]) => value.includes(param))
+        return res[0] || []
+    }
+
+    const getURLPathFromTemplateURL = (key) => template.pathname.split("/").indexOf(key)
+
+    const getValueFromURLPath = (path) => url.pathname.split("/")[path]
+
+    const getValueFromURLParams = (param) => url.searchParams.get(param)
+
+
+
+    const templateResult = templates.map(({ templateKey, contextKey }) => {
+        const [templateParam] = getParamsFromTemplateURL(templateKey)
+        const templatePath = getURLPathFromTemplateURL(templateKey)
+        let contextValue;
+
+        if (templateParam) {
+            contextValue = getValueFromURLParams(templateParam)
+        } else if (templatePath) {
+            contextValue = getValueFromURLPath(templatePath)
+      }
+
+        return {
+            templateKey,
+            contextKey,
+            contextValue
+      }
+    })
+
+
+    let context = getContextTemplate(fdc3ContextType)
+    templateResult.forEach(({ contextKey, contextValue }) => set(context, contextKey, contextValue))
+    return context
+}
+
+  /**
+ * Config drives url template parameters and replace with context contextValue
+ * ```javascript
+ * const context = {
+  type: 'fdc3.instrument',
+  name: 'Apple',
+  id: { ticker: 'AAPL', CUSIP: 'AAPL.E' }
+}
+const fdc3ToURLTemplate = {
+  urlTemplate: "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
+  fdc3ContextType: "fdc3.instrument",
+  templates: [
+    {
+      templateKey: "$1",
+      contextKey: "id.ticker"
+    },
+    {
+      templateKey: "$2",
+      contextKey: "name"
+    },
+    {
+      templateKey: "$3",
+      contextKey: "id.CUSIP"
+    }
+  ]
+}
+ * const url = createURLUsingContextValues(fdc3ToURLTemplate,context)
+ * ```
+ * @param { {string, array, string} } fdc3ToURLTemplate
+ * @param {object} context
+ * @returns {string} url string e.g "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E"
+ */
+function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }, context) {
+    if (context.type !== fdc3ContextType) throw new Error("URL_TEMPLATE_ERROR: Mismatch. Context type does not match url template context type (fdc3).")
+
+    let newTemplate = urlTemplate.toString();
+
+
+    templates.map(({
+        contextKey,
+        templateKey,
+    }) => {
+        let contextValue = get(context, contextKey)
+
+        return {
+            contextKey,
+            templateKey,
+            contextValue,
+      }
+    }).forEach(({ // fill in the template values with real values
+        contextKey,
+        templateKey,
+        contextValue,
+    }) => {
+        // update the URL with the data from the context object
+        newTemplate = newTemplate.replace(templateKey, contextValue)
+    })
+
+    return newTemplate
+}
 
 const saveStateAndNavigate = (newContext) => {
     state.context = newContext;
@@ -132,9 +294,9 @@ const saveStateAndNavigate = (newContext) => {
     FSBL.Clients.WindowClient.setComponentState(params, () => {
         //Hack: wait a little to make sure state sticks - keeps coming back with no state
         setTimeout(() => {
-            const ticker = state.context.id.ticker
-            const { templateURL, queryParameter } = FSBL.Clients.WindowClient.options.customData.component.custom
-            window.location.href = createURL({ templateURL, queryParameter, contextValue: ticker });
+            const context = state.context
+            const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
+            window.location.href = createURLUsingContextValues(fdc3ToURLTemplate, context);
         }, 1);
     });
 };
@@ -178,16 +340,8 @@ const restoreState = () => {
 const init = () => {
 
     const { templateURL, queryParameter } = FSBL.Clients.WindowClient.options.customData.component.custom
-    const ticker = getStateFromUrl({ templateURL, queryParameter });
-    if (ticker) {
-        state.context = {
-            type: "fdc3.instrument",
-            name: ticker,
-            id: {
-                ticker
-            }
-        };
-    }
+    // TODO: update
+    state.context = getContextStateFromUrl({ templateURL, queryParameter });
 
     // TODO: add the ability to use multiple int in the future
     const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
