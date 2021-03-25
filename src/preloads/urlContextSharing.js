@@ -141,13 +141,13 @@ function getContextTemplate(type) {
 
         default:
             return {
-                "type": "fdc3.instrument",
-                "id": {}
+                "type": type
             }
 
     }
 
 }
+
 
 
 /**
@@ -186,34 +186,63 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
     const template = new URL(urlTemplate)
     const url = new URL(urlParam)
 
+    // methods to decode the template URL
+    const getURLPathFromTemplateURL = (key) => template.pathname.split("/").indexOf(key)
     const getParamsFromTemplateURL = (param) => {
-        const res = Array.from(template.searchParams.entries()).filter(([key, value]) => value.includes(param))
-        return res[0] || []
+      const res = Array.from(template.searchParams.entries()).filter(([key, value]) => value.includes(param))
+      return res[0] || []
+    }
+    const getKeyFromPanopticonURL = (param) => {
+        const url1 = decodeURIComponent(template)
+        const regex = /\{(.*?)\}/g;
+        const [result] = url1.match(regex) ?? [];
+
+        if (!result) return result
+
+        // get the key for the panopiticon JSON object
+        let [key, value] = Object.entries(JSON.parse(result))
+            .find(([key, value]) => {
+                if (value === param) return key
+            })
+
+        return key
     }
 
-    const getURLPathFromTemplateURL = (key) => template.pathname.split("/").indexOf(key)
 
+    // methods to get the values from the actual URL
     const getValueFromURLPath = (path) => url.pathname.split("/")[path]
-
     const getValueFromURLParams = (param) => url.searchParams.get(param)
+    const getValueFromPanopticonURLObject = (key) => {
+        const url1 = decodeURIComponent(url)
+        const regex = /\{(.*?)\}/g;
+        const [result] = url1.match(regex) ?? [];
+        const panopiticonObject = JSON.parse(result)
+        const value = panopiticonObject[key]
+        return value
+    }
 
 
-
+    // run through all the template values from fdc3ToURLTemplate and get the values from the URL using the methods above
     const templateResult = templates.map(({ templateKey, contextKey }) => {
-        const [templateParam] = getParamsFromTemplateURL(templateKey)
-        const templatePath = getURLPathFromTemplateURL(templateKey)
-        let contextValue;
+      const [templateParam] = getParamsFromTemplateURL(templateKey)
+      const templatePath = getURLPathFromTemplateURL(templateKey)
+        const panopticonObjectKey = getKeyFromPanopticonURL(templateKey)
 
-        if (templateParam) {
-            contextValue = getValueFromURLParams(templateParam)
-        } else if (templatePath) {
-            contextValue = getValueFromURLPath(templatePath)
+
+      let contextValue;
+
+      if (templateParam) {
+        contextValue = getValueFromURLParams(templateParam)
+      } else if (panopticonObjectKey) {
+          contextValue = getValueFromPanopticonURLObject(panopticonObjectKey)
+      } else if (templatePath) {
+        contextValue = getValueFromURLPath(templatePath)
       }
 
-        return {
-            templateKey,
-            contextKey,
-            contextValue
+      return {
+        templateKey,
+        contextKey,
+        contextValue
       }
     })
 
@@ -221,7 +250,7 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
     let context = getContextTemplate(fdc3ContextType)
     templateResult.forEach(({ contextKey, contextValue }) => set(context, contextKey, contextValue))
     return context
-}
+  }
 
   /**
  * Config drives url template parameters and replace with context contextValue
