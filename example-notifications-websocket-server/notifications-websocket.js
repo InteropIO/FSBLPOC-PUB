@@ -7,19 +7,18 @@ wss.on('connection', function connection(ws) {
         console.log('received: %s', message);
     });
 
-    sendNotification();
+    sendNotification(wss);
 });
 
 const ticker = ["AAPL", "TSLA", "IBM", "GME", "AMC", "MSFT", "TTWO"]
 const action = ["Buy", "Sell"]
-function sendNotification() {
-    setTimeout(() => {
+function sendNotification(wss) {
+    setInterval(() => {
         const tickerIndex = Math.floor(Math.random() * ticker.length)
         const actionIndex = Math.floor(Math.random() * action.length)
         const price = (Math.random() * 100).toFixed(2);
         const notification = { source: "externalNotificationService", title: `${action[actionIndex]} ${ticker[tickerIndex]}`, details: `price: ${price}` }
         wss.send(notification);
-        sendNotification();
     }, 15000)
 }
 

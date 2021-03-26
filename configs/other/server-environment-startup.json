@@ -12,7 +12,10 @@
 		"//socketCertificateKey": "example.key",
 		"//socketCertificateCert": "example.crt",
 		"//webpackPublicPath": "Change the key below to 'webpackPublicPath' to serve assets from a subdirectory.",
-		"///webpackPublicPath": "/directory/mySubDirectory"
+        "///webpackPublicPath": "/directory/mySubDirectory",
+        "//userAgent": "send in open fin userAgent",
+        "//allowInsecureLocalhost": true,
+        "//disableWebSecurity": true
 	},
 	"production": {
 		"//serverPort": "Port number for your server.",

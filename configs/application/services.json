@@ -8,10 +8,20 @@
                 "autoStart": true,
                 "customFailureMessage": null,
                 "timeout": 10000,
-                "dependencies": ["FDC3"]
+                "dependencies": [
+                    "FDC3"
+                ]
             },
             "name": "coinDeskSearchService",
             "html": "$applicationRoot/services/coinDeskSearch/coinDeskSearch.html"
+        },
+        "externalNotificationsService": {
+            "bootParams": {
+                "stage": "preuser",
+                "dependencies": []
+            },
+            "name": "externalNotificationsService",
+            "html": "$applicationRoot/services/externalNotifications/externalNotifications.html"
         }
     }
 }
