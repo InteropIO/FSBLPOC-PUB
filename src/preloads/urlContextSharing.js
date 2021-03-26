@@ -38,7 +38,9 @@ function get(obj, path, defValue) {
 
 const updateFromContext = (context, cb) => {
     FSBL.Clients.Logger.log("Updating from context: ", context);
-    if (context?.id?.ticker && context.id.ticker != state.context?.id?.ticker) {
+
+    if (JSON.stringify(context) !== JSON.stringify(state.context)) {
+        state.context = context
         saveStateAndNavigate(context);
     } else {
         //run the callback only if we're not navigating to another page
@@ -52,8 +54,8 @@ const addIntentListener = () => {
         () =>
             fdc3.addIntentListener(state.intent, (context) => {
                 FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
-                if (state.processedInitialIntent && state.processedInitialIntent != state?.context?.id?.ticker
-                    && state.processedInitialIntent == context?.id?.ticker) {
+
+                if (state.processedInitialIntent != state?.context?.id?.ticker && state.processedInitialIntent == context?.id?.ticker) {
                     FSBL.Clients.Logger.log("Hack: Ignoring intent context that may have come from spawn data: ", context);
                 } else {
                     if (state.context == null && state.processedInitialIntent == null) {
@@ -249,6 +251,7 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
 
     let context = getContextTemplate(fdc3ContextType)
     templateResult.forEach(({ contextKey, contextValue }) => set(context, contextKey, contextValue))
+    FSBL.Clients.Logger.log("URL Context", context)
     return context
   }
 
@@ -313,8 +316,7 @@ function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }
     return newTemplate
 }
 
-const saveStateAndNavigate = (newContext) => {
-    state.context = newContext;
+const saveStateAndNavigate = (context) => {
     FSBL.Clients.Logger.log("Saving state: ", state);
     const params = {
         field: "state",
@@ -323,17 +325,24 @@ const saveStateAndNavigate = (newContext) => {
     FSBL.Clients.WindowClient.setComponentState(params, () => {
         //Hack: wait a little to make sure state sticks - keeps coming back with no state
         setTimeout(() => {
-            const context = state.context
-            const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
-            // TODO: does the URL string need to be urlEncoded?
-            window.location.href = createURLUsingContextValues(fdc3ToURLTemplate, context);
+            const { fdc3ToURLTemplate } = FSBL.Clients.WindowClient.options?.customData?.component?.custom
+
+            if (fdc3ToURLTemplate) {
+                 window.location.href = createURLUsingContextValues(fdc3ToURLTemplate, context);
+            } else {
+                throw new Error("No fdc3ToURLTemplate value found in config")
+            }
+
         }, 1);
     });
 };
 
 const updateFromState = (err, savedState) => {
+    const { context, processedInitialIntent } = savedState || {}
+
     const initContext = () => {
         FSBL.Clients.Logger.log("Initializing context and intent listeners");
+
         addIntentListener();
         subscribeToContext();
     };
@@ -343,8 +352,9 @@ const updateFromState = (err, savedState) => {
         initContext();
     } else {
         FSBL.Clients.Logger.log("Updating from saved state: ", state);
-        if (savedState && savedState?.context) {
-            state.processedInitialIntent = savedState?.processedInitialIntent;
+
+        if (context) {
+            state.processedInitialIntent = processedInitialIntent;
             updateFromContext(state.context, initContext);
         } else {
             initContext();
@@ -369,14 +379,16 @@ const restoreState = () => {
 
 const init = () => {
 
-    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
-    state.context = getContextStateFromUrl(fdc3ToURLTemplate);
-
     // TODO: add the ability to use multiple int in the future
     const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
     if (intent) state.intent = intent
     const context = contexts[0]
     if (context) state.context = context
+
+
+    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
+    state.context = getContextStateFromUrl(fdc3ToURLTemplate);
+
 
     restoreState();
 };
