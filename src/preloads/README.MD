@@ -69,7 +69,7 @@ The templates and context type combined will produce the FDC3 context value from
 	}
 }
 ```
-
+NOTE: The casing of the FDC3 object and the template is important.
 
 
 ### Full Example:
