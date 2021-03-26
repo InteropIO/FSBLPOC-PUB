@@ -2,6 +2,47 @@
     "comment": "Sample component configuration",
     "$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/componentsFile.schema.json",
     "components": {
+        "WPFExample (FDC3)": {
+			"window": {
+				"id": "WPFExample",
+				"windowType": "FinsembleNativeWindow",
+				"path": "C:/source/finsemble-dotnet-seed/WPFExample/bin/Debug/WPFExample.exe",
+				"url": "",
+				"arguments": "",
+				"defaultHeight": 600,
+				"autoShow": true,
+				"resizable": true,
+				"showTaskbarIcon": false,
+				"contextMenu": true,
+				"addToWorkspace": true,
+				"options": {
+					"alwaysOnTop": false
+				}
+			},
+			"component": {
+				"spawnOnStartup": false,
+				"useFdc3": true
+			},
+            "foreign": {
+				"services": {
+					"workspaceService": {
+						"isArrangable": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Window Manager": {
+						"persistWindowState": false,
+						"FSBLHeader": true
+					},
+					"Toolbar": {
+						"iconURL": "$applicationRoot/assets/img/notepad.png"
+					}
+				}
+			}			
+        },
         "Stocktwits FDC3": {
             "window": {
                 "url": "https://stocktwits.com/",
