@@ -4,7 +4,7 @@ let state = {
     context: null,
     processedInitialIntent: null,
     intent: "ViewChart",
-    context: "fdc3.instrument"
+    fdc3ToURLTemplate: null
 };
 
 //========== utility functions
@@ -34,19 +34,20 @@ function get(obj, path, defValue) {
     )
 }
 
+// This does a deep equals and is neeeded for comparing context objects
+const equals = (a, b) => {
+    if (a === b) return true;
+    if (a instanceof Date && b instanceof Date)
+        return a.getTime() === b.getTime();
+    if (!a || !b || (typeof a !== 'object' && typeof b !== 'object'))
+        return a === b;
+    if (a.prototype !== b.prototype) return false;
+    let keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length) return false;
+    return keys.every(k => equals(a[k], b[k]));
+};
   // =======end utility functions
 
-const updateFromContext = (context, cb) => {
-    FSBL.Clients.Logger.log("Updating from context: ", context);
-
-    if (JSON.stringify(context) !== JSON.stringify(state.context)) {
-        state.context = context
-        saveStateAndNavigate(context);
-    } else {
-        //run the callback only if we're not navigating to another page
-        if (cb) { cb() };
-    }
-};
 
 // #region intents
 const addIntentListener = () => {
@@ -55,12 +56,12 @@ const addIntentListener = () => {
             fdc3.addIntentListener(state.intent, (context) => {
                 FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
 
-                if (state.processedInitialIntent != state?.context?.id?.ticker && state.processedInitialIntent == context?.id?.ticker) {
+                if (equals(state.processedInitialIntent, state?.context) && equals(state.processedInitialIntent, context)) {
                     FSBL.Clients.Logger.log("Hack: Ignoring intent context that may have come from spawn data: ", context);
                 } else {
                     if (state.context == null && state.processedInitialIntent == null) {
                         FSBL.Clients.Logger.log("Recording initial intent context: ", context?.id?.ticker);
-                        state.processedInitialIntent = context?.id?.ticker;
+                        state.processedInitialIntent = context
                     }
                     updateFromContext(context);
                 }
@@ -73,24 +74,17 @@ const addIntentListener = () => {
 /**
  * Subscribe to data via FDC3
  */
-const subscribeToContext = () => {
+const subscribeToContext = (fdc3ContextType) => {
     fdc3OnReady(
         () => fdc3.addContextListener(context => {
             FSBL.Clients.Logger.log("Received context: ", context);
-            if (context.type === "fdc3.instrument") {
+            if (context.type === fdc3ContextType) {
                 updateFromContext(context);
             }
         })
     );
 };
 //#endregion context
-
-
-const getUrlPathOrParamsFromConfig = () => {
-    const { templateURL, params
-    } = FSBL.Clients.WindowClient.options
-
-}
 
 /**
  *
@@ -250,7 +244,10 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
 
 
     let context = getContextTemplate(fdc3ContextType)
-    templateResult.forEach(({ contextKey, contextValue }) => set(context, contextKey, contextValue))
+    templateResult.forEach(({ contextKey, contextValue }) => {
+        debugger;
+        if (contextValue && contextValue !== "undefined") set(context, contextKey, contextValue)
+    })
     FSBL.Clients.Logger.log("URL Context", context)
     return context
   }
@@ -316,13 +313,15 @@ function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }
     return newTemplate
 }
 
-const saveStateAndNavigate = (context) => {
+
+
+const saveStateAndNavigate = async (context) => {
     FSBL.Clients.Logger.log("Saving state: ", state);
     const params = {
         field: "state",
         value: state
     };
-    FSBL.Clients.WindowClient.setComponentState(params, () => {
+    await FSBL.Clients.WindowClient.setComponentState(params, () => {
         //Hack: wait a little to make sure state sticks - keeps coming back with no state
         setTimeout(() => {
             const { fdc3ToURLTemplate } = FSBL.Clients.WindowClient.options?.customData?.component?.custom
@@ -337,25 +336,44 @@ const saveStateAndNavigate = (context) => {
     });
 };
 
-const updateFromState = (err, savedState) => {
-    const { context, processedInitialIntent } = savedState || {}
+const updateFromContext = (context, cb) => {
+    FSBL.Clients.Logger.log("Updating from context: ", context);
+    debugger;
+
+    if (!equals(context, state.context)) {
+        state.context = context
+        saveStateAndNavigate(context);
+    } else {
+        //run the callback only if we're not navigating to another page
+        if (cb) { cb() };
+    }
+};
+
+/**
+ * Get the saved state using the Finsemble Window API
+ * @param {Error} err
+ * @param {object} savedWindowState
+ */
+const updateFromWindowState = (err, savedWindowState) => {
+    const { context, processedInitialIntent } = savedWindowState || {}
+    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options?.customData?.component.custom?.fdc3ToURLTemplate
 
     const initContext = () => {
         FSBL.Clients.Logger.log("Initializing context and intent listeners");
 
         addIntentListener();
-        subscribeToContext();
+        subscribeToContext(fdc3ToURLTemplate.fdc3ContextType);
     };
 
     if (err) {
         FSBL.Clients.Logger.warn("Error on retrieving state", err);
         initContext();
     } else {
-        FSBL.Clients.Logger.log("Updating from saved state: ", state);
+        FSBL.Clients.Logger.log("Updating from saved state: ", savedWindowState);
 
         if (context) {
             state.processedInitialIntent = processedInitialIntent;
-            updateFromContext(state.context, initContext);
+            updateFromContext(context, initContext);
         } else {
             initContext();
         }
@@ -368,7 +386,7 @@ const restoreState = () => {
         field: "state"
     };
     // TODO: Change to await so show can be after restore
-    FSBL.Clients.WindowClient.getComponentState(params, updateFromState);
+    FSBL.Clients.WindowClient.getComponentState(params, updateFromWindowState);
 };
 // #endregion
 
@@ -386,7 +404,8 @@ const init = () => {
     if (context) state.context = context
 
 
-    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
+    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options?.customData?.component.custom?.fdc3ToURLTemplate
+    state.fdc3ToURLTemplate = fdc3ToURLTemplate
     state.context = getContextStateFromUrl(fdc3ToURLTemplate);
 
 
