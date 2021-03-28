@@ -23,8 +23,8 @@
 				],
 				"custom": {
 					"fdc3ToURLTemplate": {
-						"//exampleURL": "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E",
-						"urlTemplate": "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
+						"//exampleURL": "https://stocktwits.com/symbol/AAPL?p=q&search=Appl",
+						"urlTemplate": "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o",
 						"fdc3ContextType": "fdc3.instrument",
 						"templates": [
 							{
@@ -34,10 +34,6 @@
 							{
 								"templateKey": "$2",
 								"contextKey": "name"
-							},
-							{
-								"templateKey": "$3",
-								"contextKey": "id.CUSIP"
 							}
 						]
 					}
