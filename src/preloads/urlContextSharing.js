@@ -2,9 +2,9 @@ const fdc3OnReady = (cb) => window.fdc3 ? cb : window.addEventListener("fdc3Read
 
 let state = {
     context: null,
-    processedInitialIntent: null,
     intent: "ViewChart",
-    context: "fdc3.instrument"
+    fdc3ToURLTemplate: null,
+    listeners: []
 };
 
 //========== utility functions
@@ -34,61 +34,81 @@ function get(obj, path, defValue) {
     )
 }
 
-  // =======end utility functions
+// This does a deep equals and is neeeded for comparing context objects
+const equals = (a, b) => {
+    if (a === b) return true;
+    if (a instanceof Date && b instanceof Date)
+        return a.getTime() === b.getTime();
+    if (!a || !b || (typeof a !== 'object' && typeof b !== 'object'))
+        return a === b;
+    if (a.prototype !== b.prototype) return false;
+    let keys = Object.keys(a);
+    if (keys.length !== Object.keys(b).length) return false;
+    return keys.every(k => equals(a[k], b[k]));
+};
+// =======end utility functions
 
-const updateFromContext = (context, cb) => {
+// promise based version of FSBL.Clients.WindowClient.getComponentState
+function getFinsembleComponentState(params) {
+    return new Promise((resolve, reject) => {
+        FSBL.Clients.WindowClient.getComponentState(params, (err, res) => {
+            if (err) {
+                reject(err)
+            }
+            else {
+                if (!res) {
+                    resolve(null)
+                } else {
+                    resolve(res);
+                }
+            }
+        });
+    })
+}
+
+async function setFinsembleComponentState(params) {
+    return new Promise((resolve, reject) => {
+        const setState = async (params, maxRetries = 10) => {
+            try {
+                // if the window state is the same as state then it has been updated
+                const componentState = await getFinsembleComponentState(params)
+
+                // check to see if the params sent in have been set in the Finsemble window state
+                if (equals(params.value, componentState)) {
+                    FSBL.Clients.Logger.log("Component state has been set")
+                    resolve(true)
+                } else {
+                    FSBL.Clients.Logger.log("Trying again to set component state")
+                    if (maxRetries === 0) reject(Error(`failed to set Finsemble window state. Tried ${maxRetries} times (${maxRetries / 10} seconds).`))
+                    maxRetries--;
+
+                    await FSBL.Clients.WindowClient.setComponentState(params)
+                    // try again but wait to see if Finsemble sets the window state
+                    setTimeout(() => {
+                        setState(params, maxRetries)
+                    }, 100)
+                }
+            } catch (error) {
+                FSBL.Clients.Logger.error(` WindowState Error`, error)
+            }
+
+        }
+
+        setState(params)
+    })
+}
+
+async function updateFromContext(context) {
     FSBL.Clients.Logger.log("Updating from context: ", context);
-    if (context?.id?.ticker && context.id.ticker != state.context?.id?.ticker) {
-        saveStateAndNavigate(context);
+    if (!equals(context, state.context)) {
+        state.context = context
+        const res = await saveStateAndNavigate(context);
+        return res
     } else {
-        //run the callback only if we're not navigating to another page
-        if (cb) { cb() };
+        return false
     }
 };
 
-// #region intents
-const addIntentListener = () => {
-    fdc3OnReady(
-        () =>
-            fdc3.addIntentListener(state.intent, (context) => {
-                FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
-                if (state.processedInitialIntent && state.processedInitialIntent != state?.context?.id?.ticker
-                    && state.processedInitialIntent == context?.id?.ticker) {
-                    FSBL.Clients.Logger.log("Hack: Ignoring intent context that may have come from spawn data: ", context);
-                } else {
-                    if (state.context == null && state.processedInitialIntent == null) {
-                        FSBL.Clients.Logger.log("Recording initial intent context: ", context?.id?.ticker);
-                        state.processedInitialIntent = context?.id?.ticker;
-                    }
-                    updateFromContext(context);
-                }
-            })
-    );
-};
-//#endregion intents
-
-// #region context
-/**
- * Subscribe to data via FDC3
- */
-const subscribeToContext = () => {
-    fdc3OnReady(
-        () => fdc3.addContextListener(context => {
-            FSBL.Clients.Logger.log("Received context: ", context);
-            if (context.type === "fdc3.instrument") {
-                updateFromContext(context);
-            }
-        })
-    );
-};
-//#endregion context
-
-
-const getUrlPathOrParamsFromConfig = () => {
-    const { templateURL, params
-    } = FSBL.Clients.WindowClient.options
-
-}
 
 /**
  *
@@ -149,7 +169,6 @@ function getContextTemplate(type) {
 }
 
 
-
 /**
  * Get the state from the URL using the template objects
  * @param {object} fdc3ToURLTemplate
@@ -189,8 +208,8 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
     // methods to decode the template URL
     const getURLPathFromTemplateURL = (key) => template.pathname.split("/").indexOf(key)
     const getParamsFromTemplateURL = (param) => {
-      const res = Array.from(template.searchParams.entries()).filter(([key, value]) => value.includes(param))
-      return res[0] || []
+        const res = Array.from(template.searchParams.entries()).filter(([key, value]) => value.includes(param))
+        return res[0] || []
     }
     const getKeyFromPanopticonURL = (param) => {
         const url1 = decodeURIComponent(template)
@@ -224,67 +243,83 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
 
     // run through all the template values from fdc3ToURLTemplate and get the values from the URL using the methods above
     const templateResult = templates.map(({ templateKey, contextKey }) => {
-      const [templateParam] = getParamsFromTemplateURL(templateKey)
-      const templatePath = getURLPathFromTemplateURL(templateKey)
+        const [templateParam] = getParamsFromTemplateURL(templateKey)
+        const templatePath = getURLPathFromTemplateURL(templateKey)
         const panopticonObjectKey = getKeyFromPanopticonURL(templateKey)
 
 
-      let contextValue;
+        let contextValue;
 
-      if (templateParam) {
-        contextValue = getValueFromURLParams(templateParam)
-      } else if (panopticonObjectKey) {
-          contextValue = getValueFromPanopticonURLObject(panopticonObjectKey)
-      } else if (templatePath) {
-        contextValue = getValueFromURLPath(templatePath)
-      }
+        if (templateParam) {
+            contextValue = getValueFromURLParams(templateParam)
+        } else if (panopticonObjectKey) {
+            contextValue = getValueFromPanopticonURLObject(panopticonObjectKey)
+        } else if (templatePath) {
+            contextValue = getValueFromURLPath(templatePath)
+        }
 
-      return {
-        templateKey,
-        contextKey,
-        contextValue
-      }
+        return {
+            templateKey,
+            contextKey,
+            contextValue
+        }
     })
 
 
-    let context = getContextTemplate(fdc3ContextType)
-    templateResult.forEach(({ contextKey, contextValue }) => set(context, contextKey, contextValue))
-    return context
-  }
 
-  /**
- * Config drives url template parameters and replace with context contextValue
- * ```javascript
- * const context = {
-  type: 'fdc3.instrument',
-  name: 'Apple',
-  id: { ticker: 'AAPL', CUSIP: 'AAPL.E' }
+    let context = getContextTemplate(fdc3ContextType)
+    // fill the context template object from the values from the URL
+    templateResult.forEach(({ contextKey, contextValue }) => {
+        if (contextValue && contextValue !== "undefined")
+            set(context, contextKey, contextValue)
+    })
+
+    // check to see if the template has been updated, if not set it to null
+    const isDefaultTemplate = equals(context, getContextTemplate(fdc3ContextType))
+    if (isDefaultTemplate) {
+        return null
+    } else {
+        FSBL.Clients.Logger.log("URL Context", context)
+        return context
+    }
+}
+
+
+/**
+* Config drives url template parameters and replace with context contextValue
+* ```javascript
+* const context = {
+type: 'fdc3.instrument',
+name: 'Apple',
+id: { ticker: 'AAPL', CUSIP: 'AAPL.E' }
 }
 const fdc3ToURLTemplate = {
-  urlTemplate: "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
-  fdc3ContextType: "fdc3.instrument",
-  templates: [
-    {
-      templateKey: "$1",
-      contextKey: "id.ticker"
-    },
-    {
-      templateKey: "$2",
-      contextKey: "name"
-    },
-    {
-      templateKey: "$3",
-      contextKey: "id.CUSIP"
-    }
-  ]
+urlTemplate: "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o&cu=$3",
+fdc3ContextType: "fdc3.instrument",
+templates: [
+  {
+    templateKey: "$1",
+    contextKey: "id.ticker"
+  },
+  {
+    templateKey: "$2",
+    contextKey: "name"
+  },
+  {
+    templateKey: "$3",
+    contextKey: "id.CUSIP"
+  }
+]
 }
- * const url = createURLUsingContextValues(fdc3ToURLTemplate,context)
- * ```
- * @param { {string, array, string} } fdc3ToURLTemplate
- * @param {object} context
- * @returns {string} url string e.g "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E"
- */
-function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }, context) {
+* const url = createURLUsingContextValues(fdc3ToURLTemplate,context)
+* ```
+* @param {object} context
+* @returns {string} url string e.g "https://stocktwits.com/symbol/AAPL?p=q&search=Apple&q=o&cu=AAPL.E"
+*/
+function createURLUsingContextValues(context) {
+    const { fdc3ToURLTemplate } = FSBL.Clients.WindowClient.options?.customData?.component?.custom
+    const { urlTemplate, templates, fdc3ContextType } = fdc3ToURLTemplate
+
     if (context.type !== fdc3ContextType) throw new Error("URL_TEMPLATE_ERROR: Mismatch. Context type does not match url template context type (fdc3).")
 
     let newTemplate = urlTemplate.toString();
@@ -300,7 +335,7 @@ function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }
             contextKey,
             templateKey,
             contextValue,
-      }
+        }
     }).forEach(({ // fill in the template values with real values
         contextKey,
         templateKey,
@@ -313,53 +348,82 @@ function createURLUsingContextValues({ urlTemplate, templates, fdc3ContextType }
     return newTemplate
 }
 
-const saveStateAndNavigate = (newContext) => {
-    state.context = newContext;
-    FSBL.Clients.Logger.log("Saving state: ", state);
-    const params = {
-        field: "state",
-        value: state
-    };
-    FSBL.Clients.WindowClient.setComponentState(params, () => {
-        //Hack: wait a little to make sure state sticks - keeps coming back with no state
-        setTimeout(() => {
-            const context = state.context
-            const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
-            // TODO: does the URL string need to be urlEncoded?
-            window.location.href = createURLUsingContextValues(fdc3ToURLTemplate, context);
-        }, 1);
-    });
+
+
+async function saveStateAndNavigate(context) {
+
+    try {
+        const contextState = {
+            context: state.context,
+            intent: state.intent
+        }
+        FSBL.Clients.Logger.log("Saving state: ", state);
+        const componentIsSet = await setFinsembleComponentState({
+            field: "state",
+            value: contextState
+        })
+        if (componentIsSet) {
+            // remove event listeners
+            state.listeners.forEach(listener => listener.unsubscribe())
+            const newURL = createURLUsingContextValues(context)
+
+            FSBL.Clients.Logger.log(`successfully saved state, now navigating to ${newURL}`)
+
+            window.location.href = newURL;
+        } else {
+            return false
+        }
+    } catch (error) {
+        FSBL.Clients.Logger.error(error);
+
+    }
 };
 
-const updateFromState = (err, savedState) => {
-    const initContext = () => {
-        FSBL.Clients.Logger.log("Initializing context and intent listeners");
-        addIntentListener();
-        subscribeToContext();
-    };
 
-    if (err) {
-        FSBL.Clients.Logger.warn("Error on retrieving state", err);
-        initContext();
+/**
+ * Get the saved state using the Finsemble Window API
+ * @param {Error} err
+ * @param {object} savedWindowState
+ */
+async function updateFromWindowState(savedWindowState, { fdc3ContextType }) {
+    FSBL.Clients.Logger.log("Updating from saved state: ", savedWindowState);
+
+    if (savedWindowState.context) {
+        const updated = await updateFromContext(savedWindowState.context);
+        // if we can't update from the context then run the init
+        if (!updated) { initContext(fdc3ContextType) };
     } else {
-        FSBL.Clients.Logger.log("Updating from saved state: ", state);
-        if (savedState && savedState?.context) {
-            state.processedInitialIntent = savedState?.processedInitialIntent;
-            updateFromContext(state.context, initContext);
-        } else {
-            initContext();
-        }
+        initContext(fdc3ContextType);
     }
 }
 
-const restoreState = () => {
-    FSBL.Clients.Logger.log("Restoring component state");
-    const params = {
-        field: "state"
-    };
-    // TODO: Change to await so show can be after restore
-    FSBL.Clients.WindowClient.getComponentState(params, updateFromState);
+function initContext(contextType) {
+    FSBL.Clients.Logger.log("Initializing context and intent listeners");
+
+    // set context via intent
+    const intentListener = fdc3.addIntentListener(state.intent, (context) => {
+        FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
+        // only initialise if the content is empty
+        if (!state.context) {
+            updateFromContext(context);
+        } else {
+            FSBL.Clients.Logger.log("Recording initial intent context: ", context);
+        }
+
+    })
+
+    // set context via context listener
+    const contextListener = fdc3.addContextListener(context => {
+        FSBL.Clients.Logger.log("Received context: ", context);
+        if (context.type === contextType) {
+            updateFromContext(context);
+        }
+    })
+
+    state.listeners.push(intentListener, contextListener)
+
 };
+
 // #endregion
 
 //==================================================================================
@@ -367,23 +431,52 @@ const restoreState = () => {
 //----------------------------------------------------------------------------------
 
 
-const init = () => {
-
-    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options.customData.component.custom.fdc3ToURLTemplate
-    state.context = getContextStateFromUrl(fdc3ToURLTemplate);
+async function init() {
 
     // TODO: add the ability to use multiple int in the future
-    const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
+    const { name: intent } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
     if (intent) state.intent = intent
-    const context = contexts[0]
-    if (context) state.context = context
 
-    restoreState();
+    const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options?.customData?.component.custom?.fdc3ToURLTemplate
+    if (!fdc3ToURLTemplate) {
+        throw new Error("No fdc3ToURLTemplate value found in config")
+    }
+
+    state.fdc3ToURLTemplate = fdc3ToURLTemplate
+    state.context = getContextStateFromUrl(fdc3ToURLTemplate);
+
+    try {
+        FSBL.Clients.Logger.log("Restoring component state");
+        const windowState = await getFinsembleComponentState({
+            field: "state"
+        });
+        FSBL.Clients.Logger.log("Component state", windowState);
+
+        if (windowState) {
+            updateFromWindowState(windowState, fdc3ToURLTemplate)
+        }
+        else {
+            initContext(fdc3ToURLTemplate.fdc3ContextType)
+        }
+
+    } catch (error) {
+        FSBL.Clients.Logger.warn("Error on retrieving state", error);
+        initContext(fdc3ToURLTemplate.fdc3ContextType);
+    }
+
 };
 
 //standard finsemble initialize pattern
 if (window.FSBL && FSBL.addEventListener) {
-    FSBL.addEventListener('onReady', init);
+    FSBL.addEventListener('onReady', () => fdc3OnReady(init));
 } else {
-    window.addEventListener('FSBLReady', init);
+    window.addEventListener('FSBLReady', () => fdc3OnReady(init));
 };
+
+
+// open the devtools
+// (() => {
+//     const browserView = fin.desktop.System.currentWindow.getBrowserView()
+//     const appWindow = browserView.webContents
+//     appWindow.openDevTools()
+// })()
