@@ -73,11 +73,6 @@ async function setFinsembleComponentState(params) {
                 // if the window state is the same as state then it has been updated
                 const componentState = await getFinsembleComponentState(params)
 
-                FSBL.Clients.Logger.log("setFState are they equal?: ", equals(params, componentState))
-                FSBL.Clients.Logger.log(`setFState: Params:`, params)
-                FSBL.Clients.Logger.log(` WindowState`, componentState)
-
-
                 // check to see if the params sent in have been set in the Finsemble window state
                 if (equals(params.value, componentState)) {
                     FSBL.Clients.Logger.log("Component state has been set")
@@ -103,14 +98,14 @@ async function setFinsembleComponentState(params) {
     })
 }
 
-function updateFromContext(context, initContext) {
+async function updateFromContext(context) {
     FSBL.Clients.Logger.log("Updating from context: ", context);
     if (!equals(context, state.context)) {
         state.context = context
-        saveStateAndNavigate(context);
+        const res = await saveStateAndNavigate(context);
+        return res
     } else {
-        //run the callback only if we're not navigating to another page
-        if (initContext) { initContext(context.type) };
+        return false
     }
 };
 
@@ -271,13 +266,24 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
     })
 
 
+
     let context = getContextTemplate(fdc3ContextType)
+    // fill the context template object from the values from the URL
     templateResult.forEach(({ contextKey, contextValue }) => {
-        if (contextValue && contextValue !== "undefined") set(context, contextKey, contextValue)
+        if (contextValue && contextValue !== "undefined")
+            set(context, contextKey, contextValue)
     })
-    FSBL.Clients.Logger.log("URL Context", context)
-    return context
+
+    // check to see if the template has been updated, if not set it to null
+    const isDefaultTemplate = equals(context, getContextTemplate(fdc3ContextType))
+    if (isDefaultTemplate) {
+        return null
+    } else {
+        FSBL.Clients.Logger.log("URL Context", context)
+        return context
+    }
 }
+
 
 /**
 * Config drives url template parameters and replace with context contextValue
@@ -364,6 +370,8 @@ async function saveStateAndNavigate(context) {
             FSBL.Clients.Logger.log(`successfully saved state, now navigating to ${newURL}`)
 
             window.location.href = newURL;
+        } else {
+            return false
         }
     } catch (error) {
         FSBL.Clients.Logger.error(error);
@@ -377,11 +385,13 @@ async function saveStateAndNavigate(context) {
  * @param {Error} err
  * @param {object} savedWindowState
  */
-function updateFromWindowState(savedWindowState, { fdc3ContextType }) {
+async function updateFromWindowState(savedWindowState, { fdc3ContextType }) {
     FSBL.Clients.Logger.log("Updating from saved state: ", savedWindowState);
 
     if (savedWindowState.context) {
-        updateFromContext(savedWindowState.context, initContext);
+        const updated = await updateFromContext(savedWindowState.context);
+        // if we can't update from the context then run the init
+        if (!updated) { initContext(fdc3ContextType) };
     } else {
         initContext(fdc3ContextType);
     }
@@ -390,19 +400,19 @@ function updateFromWindowState(savedWindowState, { fdc3ContextType }) {
 function initContext(contextType) {
     FSBL.Clients.Logger.log("Initializing context and intent listeners");
 
-
+    // set context via intent
     const intentListener = fdc3.addIntentListener(state.intent, (context) => {
         FSBL.Clients.Logger.log("Received intent ViewChart, context: ", context, "Current state: ", state);
-
-        if (state.context === null && state.processedInitialIntent === null) {
+        // only initialise if the content is empty
+        if (!state.context) {
+            updateFromContext(context);
+        } else {
             FSBL.Clients.Logger.log("Recording initial intent context: ", context);
-            state.processedInitialIntent = context
         }
-        updateFromContext(context);
 
     })
 
-
+    // set context via context listener
     const contextListener = fdc3.addContextListener(context => {
         FSBL.Clients.Logger.log("Received context: ", context);
         if (context.type === contextType) {
@@ -424,11 +434,8 @@ function initContext(contextType) {
 async function init() {
 
     // TODO: add the ability to use multiple int in the future
-    const { name: intent, contexts } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
+    const { name: intent } = FSBL.Clients.WindowClient.options.customData.foreign.services?.fdc3?.intents[0];
     if (intent) state.intent = intent
-    const context = contexts[0]
-    if (context) state.context = context
-
 
     const fdc3ToURLTemplate = FSBL.Clients.WindowClient.options?.customData?.component.custom?.fdc3ToURLTemplate
     if (!fdc3ToURLTemplate) {
