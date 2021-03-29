@@ -25,6 +25,9 @@
 					"fdc3ToURLTemplate": {
 						"//exampleURL": "https://stocktwits.com/symbol/AAPL?p=q&search=Appl",
 						"urlTemplate": "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o",
+						"customContextChannels": [
+							"stocks"
+						],
 						"fdc3ContextType": "fdc3.instrument",
 						"templates": [
 							{
