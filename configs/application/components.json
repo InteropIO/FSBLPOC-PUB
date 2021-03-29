@@ -73,7 +73,7 @@
 				}
 			}
 		},
-		"Google Search": {
+		"CompanySearch FDC3": {
 			"window": {
 				"url": "https://find-and-update.company-information.service.gov.uk/",
 				"width": 800,
@@ -95,6 +95,9 @@
 				"custom": {
 					"fdc3ToURLTemplate": {
 						"urlTemplate": "https://find-and-update.company-information.service.gov.uk/search?q=$1",
+						"customContextChannels": [
+							"hmrc"
+						],
 						"fdc3ContextType": "fdc3.organization",
 						"templates": [
 							{
@@ -128,7 +131,77 @@
 						"launchableByUser": true
 					},
 					"Toolbar": {
-						"iconURL": "https://stocktwits.com/favicon.png"
+						"iconURL": "https://d1mhdmez52qjiz.cloudfront.net/images/favicon.ico"
+					},
+					"Window Manager": {
+						"title": "StockTwits App",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
+		"Skyscanner FDC3": {
+			"window": {
+				"url": "https://www.skyscanner.net/",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"urlTemplate": "https://www.skyscanner.net/transport/flights-from/$1/210403/210410/?adults=1&adultsv2=$2&cabinclass=economy&children=0&childrenv2=&inboundaltsenabled=false&infants=0&outboundaltsenabled=false&preferdirects=false&preferflexible=false&ref=home&rtn=1",
+						"fdc3ContextType": "fdc3.travel",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "flight.location"
+							},
+							{
+								"templateKey": "$2",
+								"contextKey": "flight.adults"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewTravel",
+								"displayName": "ViewTravel",
+								"contexts": [
+									"fdc3.travel"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://www.skyscanner.net/favicon.ico"
 					},
 					"Window Manager": {
 						"title": "StockTwits App",
@@ -218,7 +291,11 @@
 				"addToWorkspace": true
 			},
 			"component": {
-				"spawnOnHotkey": ["ctrl", "alt", "n"]
+				"spawnOnHotkey": [
+					"ctrl",
+					"alt",
+					"n"
+				]
 			},
 			"foreign": {
 				"services": {
@@ -310,7 +387,11 @@
 				}
 			},
 			"component": {
-				"neededClients": ["LauncherClient", "AuthenticationClient", "StorageClient"],
+				"neededClients": [
+					"LauncherClient",
+					"AuthenticationClient",
+					"StorageClient"
+				],
 				"category": "system"
 			},
 			"foreign": {
@@ -344,7 +425,11 @@
 				}
 			},
 			"component": {
-				"neededClients": ["LauncherClient", "AuthenticationClient", "StorageClient"],
+				"neededClients": [
+					"LauncherClient",
+					"AuthenticationClient",
+					"StorageClient"
+				],
 				"category": "system"
 			},
 			"foreign": {
