@@ -76,6 +76,75 @@
 				}
 			}
 		},
+		"Google FDC3": {
+			"window": {
+				"url": "http://www.google.com",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"urlTemplate": "http://www.google.com/finance/quote/$1:NASDAQ",
+						"customContextChannels": [
+							"stocks"
+						],
+						"fdc3ContextType": "fdc3.instrument",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "id.ticker"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewChart",
+								"displayName": "ViewChart",
+								"contexts": [
+									"fdc3.instrument"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://ssl.gstatic.com/finance/favicon/favicon.png"
+					},
+					"Window Manager": {
+						"title": "Google Finance",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
 		"CompanySearch FDC3": {
 			"window": {
 				"url": "https://find-and-update.company-information.service.gov.uk/",
@@ -137,7 +206,7 @@
 						"iconURL": "https://d1mhdmez52qjiz.cloudfront.net/images/favicon.ico"
 					},
 					"Window Manager": {
-						"title": "StockTwits App",
+						"title": "Companies House App",
 						"FSBLHeader": true,
 						"showLinker": true,
 						"persistWindowState": true
@@ -207,7 +276,7 @@
 						"iconURL": "https://www.skyscanner.net/favicon.ico"
 					},
 					"Window Manager": {
-						"title": "StockTwits App",
+						"title": "Skyscanner App",
 						"FSBLHeader": true,
 						"showLinker": true,
 						"persistWindowState": true
