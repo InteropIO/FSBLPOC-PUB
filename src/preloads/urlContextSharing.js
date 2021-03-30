@@ -34,7 +34,7 @@ function get(obj, path, defValue) {
     )
 }
 
-// This does a deep equals and is neeeded for comparing context objects
+// This does a deep equals and is needed for comparing context objects
 const equals = (a, b) => {
     if (a === b) return true;
     if (a instanceof Date && b instanceof Date)
@@ -46,7 +46,20 @@ const equals = (a, b) => {
     if (keys.length !== Object.keys(b).length) return false;
     return keys.every(k => equals(a[k], b[k]));
 };
+
 // =======end utility functions
+
+// loop over all the keys and make sure they match - if they don't return false
+function compareFDC3TemplateAndContext(fdc3ToURLTemplate, currentContext, newContext) {
+    const { templates } = fdc3ToURLTemplate
+    templates.map(template => {
+        const exits = context.get(currentContext, template)
+        if (exists) {
+            // set(state, ...)
+        }
+    })
+}
+
 
 // promise based version of FSBL.Clients.WindowClient.getComponentState
 function getFinsembleComponentState(params) {
@@ -66,6 +79,7 @@ function getFinsembleComponentState(params) {
     })
 }
 
+// TODO: add some comments and rename params to something meaningful
 async function setFinsembleComponentState(params) {
     return new Promise((resolve, reject) => {
         const setState = async (params, maxRetries = 10) => {
@@ -73,7 +87,8 @@ async function setFinsembleComponentState(params) {
                 // if the window state is the same as state then it has been updated
                 const componentState = await getFinsembleComponentState(params)
 
-                // check to see if the params sent in have been set in the Finsemble window state
+                // check to see if the component state has been set by checking for equality in the
+                // params sent in  to the Finsemble window state value
                 if (equals(params.value, componentState)) {
                     FSBL.Clients.Logger.log("Component state has been set")
                     resolve(true)
@@ -93,13 +108,13 @@ async function setFinsembleComponentState(params) {
             }
 
         }
-
         setState(params)
     })
 }
 
 async function updateFromContext(context) {
     FSBL.Clients.Logger.log("Updating from context: ", context);
+    // TODO: may need to change equals
     if (!equals(context, state.context)) {
         state.context = context
         const res = await saveStateAndNavigate(context);
@@ -375,7 +390,6 @@ async function saveStateAndNavigate(context) {
         }
     } catch (error) {
         FSBL.Clients.Logger.error(error);
-
     }
 };
 
@@ -462,6 +476,7 @@ async function init() {
 
     state.fdc3ToURLTemplate = fdc3ToURLTemplate
     state.context = getContextStateFromUrl(fdc3ToURLTemplate);
+
 
     try {
         FSBL.Clients.Logger.log("Restoring component state");
