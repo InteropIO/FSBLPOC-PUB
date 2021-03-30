@@ -49,15 +49,13 @@ const equals = (a, b) => {
 
 // =======end utility functions
 
-// loop over all the keys and make sure they match - if they don't return false
-function compareFDC3TemplateAndContext(fdc3ToURLTemplate, currentContext, newContext) {
+// boolean - true if all template elements are found in the context, false if not
+// context passed in is fine to have more elements than are in template, 
+//  as long as it also has the full template implementation
+function compareContexts(contextA, contextB, fdc3ToURLTemplate) {
     const { templates } = fdc3ToURLTemplate
-    templates.map(template => {
-        const exits = context.get(currentContext, template)
-        if (exists) {
-            // set(state, ...)
-        }
-    })
+    // compare to make sure that the values of the keys for each context match
+    return templates.every(({ contextKey }) => get(contextA, contextKey) === get(contextB, contextKey))
 }
 
 
@@ -79,7 +77,6 @@ function getFinsembleComponentState(params) {
     })
 }
 
-// TODO: add some comments and rename params to something meaningful
 async function setFinsembleComponentState(params) {
     return new Promise((resolve, reject) => {
         const setState = async (params, maxRetries = 10) => {
@@ -114,8 +111,9 @@ async function setFinsembleComponentState(params) {
 
 async function updateFromContext(context) {
     FSBL.Clients.Logger.log("Updating from context: ", context);
-    // TODO: may need to change equals
-    if (!equals(context, state.context)) {
+    // context:  window.state.context
+    // state.context:  url param context
+    if (!compareContexts(context, state.context, state.fdc3ToURLTemplate)) {
         state.context = context
         const res = await saveStateAndNavigate(context);
         return res
@@ -281,21 +279,21 @@ function getContextStateFromUrl({ urlTemplate, templates, fdc3ContextType }, url
     })
 
 
-
-    let context = getContextTemplate(fdc3ContextType)
+    // init with bare object minimum 
+    let initialContext = getContextTemplate(fdc3ContextType)
     // fill the context template object from the values from the URL
     templateResult.forEach(({ contextKey, contextValue }) => {
         if (contextValue && contextValue !== "undefined")
-            set(context, contextKey, contextValue)
+            set(initialContext, contextKey, contextValue)
     })
 
     // check to see if the template has been updated, if not set it to null
-    const isDefaultTemplate = equals(context, getContextTemplate(fdc3ContextType))
+    const isDefaultTemplate = equals(initialContext, getContextTemplate(fdc3ContextType))
     if (isDefaultTemplate) {
         return null
     } else {
-        FSBL.Clients.Logger.log("URL Context", context)
-        return context
+        FSBL.Clients.Logger.log("URL Context", initialContext)
+        return initialContext
     }
 }
 
@@ -506,10 +504,3 @@ if (window.FSBL && FSBL.addEventListener) {
     window.addEventListener('FSBLReady', () => fdc3OnReady(init));
 };
 
-
-// open the devtools
-// (() => {
-//     const browserView = fin.desktop.System.currentWindow.getBrowserView()
-//     const appWindow = browserView.webContents
-//     appWindow.openDevTools()
-// })()
