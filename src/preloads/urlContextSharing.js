@@ -397,7 +397,7 @@ async function updateFromWindowState(savedWindowState, { fdc3ContextType }) {
     }
 }
 
-function initContext(contextType) {
+async function initContext(contextType) {
     FSBL.Clients.Logger.log("Initializing context and intent listeners");
 
     // set context via intent
@@ -412,7 +412,7 @@ function initContext(contextType) {
 
     })
 
-    // set context via context listener
+    // set context via context listener (this is controlled by the linker - the linker changing)
     const contextListener = fdc3.addContextListener(context => {
         FSBL.Clients.Logger.log("Received context: ", context);
         if (context.type === contextType) {
@@ -420,7 +420,25 @@ function initContext(contextType) {
         }
     })
 
-    state.listeners.push(intentListener, contextListener)
+    // custom channels - these are provided by context
+    const customContextChannels = state.fdc3ToURLTemplate.customContextChannels
+    const customChannelsContextListeners = customContextChannels.map(async (customChannel) => {
+        const channel = await fdc3.getOrCreateChannel(customChannel)
+        const channelListener = channel.addContextListener(context => {
+            FSBL.Clients.Logger.log("Received context: ", context);
+            if (context.type === contextType) {
+                updateFromContext(context);
+            }
+        })
+
+        return channelListener
+    })
+
+    // the customChannelsContextListeners return a promise, this is needed to resolve an array of listeners
+    let resolvedCustomChannelListeners = await Promise.all(customChannelsContextListeners)
+
+    // add the listeners to the state object so that we can clean up at a later stage
+    state.listeners = [...state.listeners, intentListener, contextListener, ...resolvedCustomChannelListeners]
 
 };
 
