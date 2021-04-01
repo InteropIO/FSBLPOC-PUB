@@ -18,6 +18,8 @@
 	Check your component's chrome console for the existence of FSBL. If it doesn't exist then check your path.
  */
 
+
+
 /**
  * This overrides the browser's built in window.open function by instead creating windows using LauncherClient.spawn.
  * This ensures that the Finsemble workspace manager is aware of newly opened windows, that they can participate in
@@ -72,3 +74,4 @@ window.open = function (theURL, name, specs, replace) {
 window.alert = function (message) {
 	FSBL.UserNotification.alert("alert", "", "ALWAYS", message, {});
 };
+

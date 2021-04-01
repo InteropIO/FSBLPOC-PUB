@@ -1,341 +1,525 @@
 {
-    "comment": "Sample component configuration",
-    "$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/componentsFile.schema.json",
-    "components": {
-        "Stocktwits FDC3": {
-            "window": {
-                "url": "https://stocktwits.com/",
-                "width": 800,
-                "height": 600,
-                "options": {
-                    "minWidth": 75,
-                    "securityPolicy": "trusted"
-                },
-                "affinity": "fdc3",
-                "addToWorkspace": true
-            },
-            "component": {
-                "mode": "fdc3",
-                "category": "system",
-                "preload": [
-                    "$applicationRoot/preloads/FDC3Client.js",
+	"comment": "Sample component configuration",
+	"$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/componentsFile.schema.json",
+	"components": {
+		"Stocktwits FDC3": {
+			"window": {
+				"url": "https://stocktwits.com/",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
                     "$applicationRoot/preloads/urlContextSharing.js"
-                ],
-                "custom": {
-                    "templateURL": "https://stocktwits.com/symbol/$$",
-                    "//queryParameter": "ticker"
-                }
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "allowAutoArrange": true
-                    },
-                    "data": {},
-                    "fdc3": {
-                        "intents": [
-                            {
-                                "name": "ViewChart",
-                                "displayName": "ViewChart",
-                                "contexts": [
-                                    "fdc3.instrument"
-                                ]
-                            }
-                        ]
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": true
-                    },
-                    "Toolbar": {
-                        "iconURL": "https://stocktwits.com/favicon.png"
-                    },
-                    "Window Manager": {
-                        "title": "StockTwits App",
-                        "FSBLHeader": true,
-                        "showLinker": true,
-                        "persistWindowState": true
-                    }
-                }
-            }
-        },
-        "Welcome Component": {
-            "window": {
-                "url": "$applicationRoot/components/welcome/welcome.html",
-                "affinity": "workspaceComponents",
-                "options": {
-                    "resizable": true,
-                    "autoShow": true,
-                    "alwaysOnTop": false
-                },
-                "top": "center",
-                "left": "center",
-                "width": 400,
-                "height": 432
-            },
-            "component": {
-                "displayName": "Welcome Component",
-                "spawnOnStartup": false,
-                "preload": "$applicationRoot/preloads/zoom.js"
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "allowSnapping": true,
-                        "allowGrouping": true,
-                        "allowAutoArrange": true,
-                        "allowMinimize": true
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": true
-                    },
-                    "Window Manager": {
-                        "alwaysOnTopIcon": false,
-                        "showLinker": true,
-                        "FSBLHeader": true,
-                        "persistWindowState": true,
-                        "title": "Welcome to Finsemble"
-                    },
-                    "Toolbar": {
-                        "iconClass": "ff-component"
-                    }
-                }
-            }
-        },
-        "nonConfiguredComponent": {
-            "window": {
-                "url": "$applicationRoot/components/nonConfiguredComponent/nonConfiguredComponent.html",
-                "affinity": "systemComponents",
-                "options": {
-                    "resizable": true,
-                    "autoShow": true
-                },
-                "top": "center",
-                "left": "center",
-                "width": 400,
-                "height": 432
-            },
-            "foreign": {
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": false
-                    }
-                }
-            }
-        },
-        "Notepad": {
-            "window": {
-                "windowType": "assimilation",
-                "path": "notepad.exe",
-                "defaultHeight": 600,
-                "options": {
-                    "autoShow": true
-                },
-                "showTaskbarIcon": false,
-                "contextMenu": true,
-                "addToWorkspace": true
-            },
-            "component": {
-                "spawnOnHotkey": [
-                    "ctrl",
-                    "alt",
-                    "n"
-                ]
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "allowAutoArrange": true
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": true
-                    },
-                    "Window Manager": {
-                        "persistWindowState": false,
-                        "FSBLHeader": true
-                    },
-                    "Toolbar": {
-                        "iconURL": "$applicationRoot/assets/img/notepad.png"
-                    }
-                }
-            }
-        },
-        "Getting Started Tutorial": {
-            "window": {
-                "url": "https://documentation.finsemble.com/tutorial-gettingStarted.html",
-                "height": 800,
-                "width": 1000
-            },
-            "component": {
-                "spawnOnStartup": false
-            },
-            "foreign": {
-                "services": {
-                    "workspaceService": {
-                        "persistURL": true
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": false
-                    },
-                    "Window Manager": {
-                        "showLinker": false,
-                        "FSBLHeader": true,
-                        "persistWindowState": true,
-                        "title": "Finsemble Getting Started Tutorial"
-                    }
-                }
-            }
-        },
-        "Finsemble Documentation": {
-            "window": {
-                "url": "http://documentation.chartiq.com/finsemble",
-                "left": "center",
-                "top": "center",
-                "height": 800,
-                "width": 1000
-            },
-            "component": {},
-            "foreign": {
-                "services": {
-                    "workspaceService": {
-                        "persistURL": true
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": false
-                    },
-                    "Window Manager": {
-                        "showLinker": false,
-                        "FSBLHeader": true,
-                        "persistWindowState": true,
-                        "title": "Finsemble Documentation"
-                    }
-                }
-            }
-        },
-        "Authentication": {
-            "window": {
-                "url": "$applicationRoot/components/authentication/Authentication.html",
-                "top": "center",
-                "left": "center",
-                "width": 358,
-                "height": 460,
-                "ephemeral": true,
-                "alwaysOnTop": true,
-                "options": {
-                    "autoShow": true
-                }
-            },
-            "component": {
-                "neededClients": [
-                    "LauncherClient",
-                    "AuthenticationClient",
-                    "StorageClient"
-                ],
-                "category": "system"
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "allowAutoArrange": false
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": false
-                    },
-                    "Window Manager": {
-                        "FSBLHeader": false,
-                        "persistWindowState": false
-                    }
-                }
-            }
-        },
-        "Registration": {
-            "window": {
-                "url": "$applicationRoot/components/registration/registration.html",
-                "top": "center",
-                "left": "center",
-                "width": 400,
-                "height": 500,
-                "ephemeral": true,
-                "alwaysOnTop": true,
-                "options": {
-                    "autoShow": false
-                }
-            },
-            "component": {
-                "neededClients": [
-                    "LauncherClient",
-                    "AuthenticationClient",
-                    "StorageClient"
-                ],
-                "category": "system"
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "allowAutoArrange": false
-                    }
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": false
-                    },
-                    "Window Manager": {
-                        "FSBLHeader": false,
-                        "persistWindowState": false
-                    }
-                }
-            }
-        },
-        "SearchFDC3BroadcastViewer": {
-            "window": {
-                "url": "$applicationRoot/components/searchFDC3BroadcastViewer/searchFDC3BroadcastViewer.html",
-                "options": {
-                    "resizable": true,
-                    "autoShow": true,
-                    "alwaysOnTop": false
-                },
-                "width": 800,
-                "height": 600
-            },
-            "component": {
-                "preload": "$applicationRoot/preloads/FDC3Client.js",
-                "spawnOnStartup": false
-            },
-            "foreign": {
-                "services": {
-                    "windowService": {
-                        "manageWindowMovement": true,
-                        "allowAutoArrange": true,
-                        "allowSnapping": true,
-                        "allowTabbing": true,
-                        "allowTiling": true,
-                        "allowGrouping": true,
-                        "allowMinimize": true
-                    },
-                    "workspace": {}
-                },
-                "components": {
-                    "App Launcher": {
-                        "launchableByUser": true
-                    },
-                    "Window Manager": {
-                        "alwaysOnTopIcon": true,
-                        "title": "searchFDC3BroadcastViewer",
-                        "persistWindowState": true
-                    }
-                }
-            }
-        }
-    }
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"//exampleURL": "https://stocktwits.com/symbol/AAPL?p=q&search=Appl",
+						"urlTemplate": "https://stocktwits.com/symbol/$1?p=q&search=$2&q=o",
+						"customContextChannels": [
+							"stocks"
+						],
+						"fdc3ContextType": "fdc3.instrument",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "id.ticker"
+							},
+							{
+								"templateKey": "$2",
+								"contextKey": "name"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewChart",
+								"displayName": "ViewChart",
+								"contexts": [
+									"fdc3.instrument"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://stocktwits.com/favicon.png"
+					},
+					"Window Manager": {
+						"title": "StockTwits App",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
+		"Google FDC3": {
+			"window": {
+				"url": "http://www.google.com",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"urlTemplate": "http://www.google.com/finance/quote/$1:NASDAQ",
+						"customContextChannels": [
+							"stocks"
+						],
+						"fdc3ContextType": "fdc3.instrument",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "id.ticker"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewChart",
+								"displayName": "ViewChart",
+								"contexts": [
+									"fdc3.instrument"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://ssl.gstatic.com/finance/favicon/favicon.png"
+					},
+					"Window Manager": {
+						"title": "Google Finance",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
+		"CompanySearch FDC3": {
+			"window": {
+				"url": "https://find-and-update.company-information.service.gov.uk/",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"urlTemplate": "https://find-and-update.company-information.service.gov.uk/search?q=$1",
+						"customContextChannels": [
+							"hmrc"
+						],
+						"fdc3ContextType": "fdc3.organization",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "name"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewCompany",
+								"displayName": "ViewCompany",
+								"contexts": [
+									"fdc3.organization"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://d1mhdmez52qjiz.cloudfront.net/images/favicon.ico"
+					},
+					"Window Manager": {
+						"title": "Companies House App",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
+		"Skyscanner FDC3": {
+			"window": {
+				"url": "https://www.skyscanner.net/",
+				"width": 800,
+				"height": 600,
+				"options": {
+					"minWidth": 75,
+					"securityPolicy": "trusted"
+				},
+				"affinity": "fdc3",
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "fdc3",
+				"category": "system",
+				"preload": [
+					"$applicationRoot/preloads/FDC3Client.js",
+					"$applicationRoot/preloads/urlContextSharing.js"
+				],
+				"custom": {
+					"fdc3ToURLTemplate": {
+						"urlTemplate": "https://www.skyscanner.net/transport/flights-from/$1/210403/210410/?adults=1&adultsv2=$2&cabinclass=economy&children=0&childrenv2=&inboundaltsenabled=false&infants=0&outboundaltsenabled=false&preferdirects=false&preferflexible=false&ref=home&rtn=1",
+						"fdc3ContextType": "fdc3.travel",
+						"templates": [
+							{
+								"templateKey": "$1",
+								"contextKey": "flight.location"
+							},
+							{
+								"templateKey": "$2",
+								"contextKey": "flight.adults"
+							}
+						]
+					}
+				}
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					},
+					"data": {},
+					"fdc3": {
+						"intents": [
+							{
+								"name": "ViewTravel",
+								"displayName": "ViewTravel",
+								"contexts": [
+									"fdc3.travel"
+								]
+							}
+						]
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Toolbar": {
+						"iconURL": "https://www.skyscanner.net/favicon.ico"
+					},
+					"Window Manager": {
+						"title": "Skyscanner App",
+						"FSBLHeader": true,
+						"showLinker": true,
+						"persistWindowState": true
+					}
+				}
+			}
+		},
+		"Welcome Component": {
+			"window": {
+				"url": "$applicationRoot/components/welcome/welcome.html",
+				"affinity": "workspaceComponents",
+				"options": {
+					"resizable": true,
+					"autoShow": true,
+					"alwaysOnTop": false
+				},
+				"top": "center",
+				"left": "center",
+				"width": 400,
+				"height": 432
+			},
+			"component": {
+				"displayName": "Welcome Component",
+				"spawnOnStartup": false,
+				"preload": "$applicationRoot/preloads/zoom.js"
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowSnapping": true,
+						"allowGrouping": true,
+						"allowAutoArrange": true,
+						"allowMinimize": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Window Manager": {
+						"alwaysOnTopIcon": false,
+						"showLinker": true,
+						"FSBLHeader": true,
+						"persistWindowState": true,
+						"title": "Welcome to Finsemble"
+					},
+					"Toolbar": {
+						"iconClass": "ff-component"
+					}
+				}
+			}
+		},
+		"nonConfiguredComponent": {
+			"window": {
+				"url": "$applicationRoot/components/nonConfiguredComponent/nonConfiguredComponent.html",
+				"affinity": "systemComponents",
+				"options": {
+					"resizable": true,
+					"autoShow": true
+				},
+				"top": "center",
+				"left": "center",
+				"width": 400,
+				"height": 432
+			},
+			"foreign": {
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					}
+				}
+			}
+		},
+		"Notepad": {
+			"window": {
+				"windowType": "assimilation",
+				"path": "notepad.exe",
+				"defaultHeight": 600,
+				"options": {
+					"autoShow": true
+				},
+				"showTaskbarIcon": false,
+				"contextMenu": true,
+				"addToWorkspace": true
+			},
+			"component": {
+				"spawnOnHotkey": [
+					"ctrl",
+					"alt",
+					"n"
+				]
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Window Manager": {
+						"persistWindowState": false,
+						"FSBLHeader": true
+					},
+					"Toolbar": {
+						"iconURL": "$applicationRoot/assets/img/notepad.png"
+					}
+				}
+			}
+		},
+		"Getting Started Tutorial": {
+			"window": {
+				"url": "https://documentation.finsemble.com/tutorial-gettingStarted.html",
+				"height": 800,
+				"width": 1000
+			},
+			"component": {
+				"spawnOnStartup": false
+			},
+			"foreign": {
+				"services": {
+					"workspaceService": {
+						"persistURL": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"showLinker": false,
+						"FSBLHeader": true,
+						"persistWindowState": true,
+						"title": "Finsemble Getting Started Tutorial"
+					}
+				}
+			}
+		},
+		"Finsemble Documentation": {
+			"window": {
+				"url": "http://documentation.chartiq.com/finsemble",
+				"left": "center",
+				"top": "center",
+				"height": 800,
+				"width": 1000
+			},
+			"component": {},
+			"foreign": {
+				"services": {
+					"workspaceService": {
+						"persistURL": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"showLinker": false,
+						"FSBLHeader": true,
+						"persistWindowState": true,
+						"title": "Finsemble Documentation"
+					}
+				}
+			}
+		},
+		"Authentication": {
+			"window": {
+				"url": "$applicationRoot/components/authentication/Authentication.html",
+				"top": "center",
+				"left": "center",
+				"width": 358,
+				"height": 460,
+				"ephemeral": true,
+				"alwaysOnTop": true,
+				"options": {
+					"autoShow": true
+				}
+			},
+			"component": {
+				"neededClients": [
+					"LauncherClient",
+					"AuthenticationClient",
+					"StorageClient"
+				],
+				"category": "system"
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": false
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"FSBLHeader": false,
+						"persistWindowState": false
+					}
+				}
+			}
+		},
+		"Registration": {
+			"window": {
+				"url": "$applicationRoot/components/registration/registration.html",
+				"top": "center",
+				"left": "center",
+				"width": 400,
+				"height": 500,
+				"ephemeral": true,
+				"alwaysOnTop": true,
+				"options": {
+					"autoShow": false
+				}
+			},
+			"component": {
+				"neededClients": [
+					"LauncherClient",
+					"AuthenticationClient",
+					"StorageClient"
+				],
+				"category": "system"
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": false
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"FSBLHeader": false,
+						"persistWindowState": false
+					}
+				}
+			}
+		}
+	}
 }
