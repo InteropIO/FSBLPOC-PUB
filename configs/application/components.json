@@ -2,6 +2,46 @@
 	"comment": "Sample component configuration",
 	"$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/componentsFile.schema.json",
 	"components": {
+		"Finsemble WPF Demo FDC3": {
+			"window": {
+				"windowType": "native",
+				"alias": "finsemble-fdc3-wpf-example",
+				"top": "center",
+				"left": "center",
+				"height": 500,
+				"width": 500,
+				"autoShow": true,
+				"alwaysOnTop": false,
+				"resizable": true,
+				"showTaskbarIcon": true,
+				"addToWorkspace": true
+			},
+			"component": {
+				"mode": "native",
+				"category": "system",
+				"useFdc3": true
+			},
+			"foreign": {
+				"services": {
+					"workspaceService": {
+						"isArrangable": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": true
+					},
+					"Window Manager": {
+						"persistWindowState": false,
+						"FSBLHeader": true,
+						"alwaysOnTopIcon": false 
+					},
+					"Toolbar": {
+						"iconURL": "$applicationRoot/assets/img/DotNet_WPF_logo.png"
+					}
+				}
+			}
+		},
 		"Stocktwits FDC3": {
 			"window": {
 				"url": "https://stocktwits.com/",

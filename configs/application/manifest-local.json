@@ -33,6 +33,12 @@
               "target": "BloombergBridge.exe"
           },
           {
+              "src": "http://localhost:3375/hosted/FDC3WPFExample-Release.zip",
+              "version": "5.4.0-hotfix",
+              "alias": "finsemble-fdc3-wpf-example",
+              "target": "FDC3WPFExample.exe"
+          },
+          {
               "src": "https://assets.finsemble.com/assimilation/assimilation_5.1.0.0.zip",
               "version": "5.1.0.0",
               "alias": "assimilation",
