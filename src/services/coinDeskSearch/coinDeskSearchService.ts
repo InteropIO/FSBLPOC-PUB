@@ -208,7 +208,7 @@ class coinDeskSearchService extends Finsemble.baseService {
                     }
                 });
             } else {
-                Finsemble.Clients.Logger.warn("Context not shared to Bllomberg as we are not connected to the terminal");
+                Finsemble.Clients.Logger.warn("Context not shared to Bloomberg as we are not connected to the terminal");
             }
         }
     }
@@ -232,7 +232,7 @@ class coinDeskSearchService extends Finsemble.baseService {
             if (!err && resp === true) {
                 connectedToBbg = true;
             } else if (err) {
-                Finsemble.Clients.Logger.error("Error received when checking connection", err);
+                Finsemble.Clients.Logger.debug("Error received when checking connection", err);
                 connectedToBbg = false;
             } else {
                 Finsemble.Clients.Logger.debug("Negative response when checking connection: ", resp);

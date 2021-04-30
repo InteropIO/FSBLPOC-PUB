@@ -187,4 +187,3 @@ const serviceInstance = new
 	});
 
 serviceInstance.start();
-module.exports = serviceInstance;

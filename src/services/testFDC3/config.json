@@ -6,14 +6,11 @@
         "stage": "user",
         "stopOnFailure": false,
         "autoStart": true,
-        "customFailureMessage": null,
         "timeout": 10000,
         "dependencies": [
           "FDC3"
         ]
       },
-      "useWindow": true,
-      "active": true,
       "name": "testFDC3",
       "file": "$applicationRoot/services/testFDC3/testFDC3Service.js",
       "visible": false,

@@ -58,7 +58,7 @@
 				"width": 300
 			},
 			"component": {
-				"spawnOnStartup": false,
+				"spawnOnStartup": true,
 				"displayName": "Bloomberg Bridge"
 			},
 			"foreign": {
