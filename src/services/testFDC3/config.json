@@ -1,20 +1,18 @@
 {
-  "comment": "Houses config for any custom services that you'd like to import into Finsemble.",
-  "services": {
-    "testFDC3": {
-      "bootParams": {
-        "stage": "user",
-        "stopOnFailure": false,
-        "autoStart": true,
-        "timeout": 10000,
-        "dependencies": [
-          "FDC3"
-        ]
-      },
-      "name": "testFDC3",
-      "file": "$applicationRoot/services/testFDC3/testFDC3Service.js",
-      "visible": false,
-      "html": "$applicationRoot/services/testFDC3/testFDC3.html"
-    }
-  }
+	"comment": "Houses config for any custom services that you'd like to import into Finsemble.",
+	"services": {
+		"testFDC3": {
+			"bootParams": {
+				"stage": "user",
+				"stopOnFailure": false,
+				"autoStart": true,
+				"timeout": 10000,
+				"dependencies": ["FDC3"]
+			},
+			"name": "testFDC3",
+			"file": "$applicationRoot/services/testFDC3/testFDC3Service.js",
+			"visible": false,
+			"html": "$applicationRoot/services/testFDC3/testFDC3.html"
+		}
+	}
 }
