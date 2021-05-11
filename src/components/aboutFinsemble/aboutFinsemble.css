@@ -1,0 +1,47 @@
+/***********************************************************************************************************************
+	Copyright 2017-2020 by ChartIQ, Inc.
+	Licensed under the ChartIQ, Inc. Developer License Agreement https://www.chartiq.com/developer-license-agreement
+ **********************************************************************************************************************/
+ @import url('../../../assets/css/defaultTheme.css');
+
+body {
+	margin: 0;
+	font-size: var(--procMonitor-font-size);
+	font-weight: var(--procMonitor-font-weight);
+	font-family: var(--font-family);
+	color: var(--procMonitor-font-color);
+	background-color: var(--procMonitor-background-color);
+}
+
+.container {
+	padding: 0 20px;
+}
+
+table {
+	border-collapse: collapse;
+	border: 1px solid white;
+	width: 100%;
+}
+
+table th, td {
+	border: 1px solid white;
+	text-align: left;
+}
+
+dt {
+	font-size: 1.2em;
+	font-weight: bold;
+	margin-bottom: 5px;
+}
+
+dd {
+	margin-bottom: 20px;
+}
+
+ul {
+	margin: 0;
+}
+
+dt::after {
+	content: ": ";
+}

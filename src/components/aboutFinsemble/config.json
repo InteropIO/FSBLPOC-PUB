@@ -1,0 +1,39 @@
+{
+	"components": {
+		"About Finsemble": {
+			"window": {
+				"url": "$applicationRoot/components/aboutFinsemble/aboutFinsemble.html",
+				"affinity": "systemComponents",
+				"frame": false,
+				"resizable": true,
+				"autoShow": true,
+				"top": "center",
+				"left": "center",
+				"width": 400,
+				"height": 600
+			},
+			"component": {
+				"inject": false,
+				"spawnOnStartup": false,
+				"category": "system"
+			},
+			"foreign": {
+				"services": {
+					"windowService": {
+						"allowAutoArrange": true
+					}
+				},
+				"components": {
+					"App Launcher": {
+						"launchableByUser": false
+					},
+					"Window Manager": {
+						"FSBLHeader": true,
+						"persistWindowState": true,
+						"title": "About Finsemble"
+					}
+				}
+			}
+		}
+	}
+}

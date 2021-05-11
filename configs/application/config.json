@@ -2,11 +2,7 @@
   "comment": "Top-level application config for development, adding on top of the core config",
   "$schema": "../../node_modules/@finsemble/finsemble-core/configs/schemas/fileBasedSchemas/applicationConfigFile.schema.json",
   "accessibleLinker": true,
-  "authentication": {
-    "startup": {
-      "adapter": "PASSWORD",
-      "component": "Registration"
-    }
+"authentication": {
   },
   "servicesConfig": {
     "distributedStore": {
@@ -146,6 +142,7 @@
     "$applicationRoot/components/intentResolver/config.json",
     "$applicationRoot/services/FDC3/config.json",
     "$applicationRoot/services/testFDC3/config.json",
-    "$applicationRoot/services/bloombergSearch/config.json"
+    "$applicationRoot/services/bloombergSearch/config.json",
+    "$applicationRoot/components/aboutFinsemble/config.json"
   ]
 }

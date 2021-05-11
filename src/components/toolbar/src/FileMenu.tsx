@@ -1,5 +1,7 @@
 import React from "react";
 import { Menu } from "@finsemble/finsemble-ui/react/components/menu";
+import { MenuItem } from "@finsemble/finsemble-ui/react/components/menu";
+import CustomActions from "./actions";
 import {
 	Preferences,
 	SystemLog,
@@ -21,6 +23,7 @@ export const FileMenu = () => (
 		<Documentation />
 		<Restart />
 		<Reset />
+        <MenuItem onClick={CustomActions.spawnAbout}>About Finsemble</MenuItem>
 		<Quit />
 		{/* To add your own items to the menu, import MenuItem from
 		 * "@finsemble/finsemble-ui/react/components" and add the following:
