@@ -336,7 +336,7 @@
 				"top": "center",
 				"left": "center",
 				"width": 400,
-				"height": 432
+                "height": 432
 			},
 			"component": {
 				"displayName": "Welcome Component",

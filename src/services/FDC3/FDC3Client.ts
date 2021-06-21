@@ -52,20 +52,22 @@ class FDC3Client {
 			// Since the linkerClient doesn't really wait properly
 			await this.#wait(50);
 
-			if (this.#strict) {
-				if (linkerChannels.length) {
-					win.fdc3 = await this.getOrCreateDesktopAgent(linkerChannels[0]);
-				} else {
-					win.fdc3 = await this.getOrCreateDesktopAgent("global");
-				}
-				const fdc3Ready = new Event("fdc3Ready");
-				window.dispatchEvent(fdc3Ready);
-			} else {
-				win.fdc3 = await this.getOrCreateDesktopAgent("global");
-				for (const channel of linkerChannels) {
-					await this.getOrCreateDesktopAgent(channel);
-				}
-			}
+            if (this.#strict) {
+                if (linkerChannels.length) {
+                    win.fdc3 = await this.getOrCreateDesktopAgent(linkerChannels[0]);
+                } else {
+                    win.fdc3 = await this.getOrCreateDesktopAgent("global");
+                    await win.fdc3.leaveCurrentChannel();
+                }
+                const fdc3Ready = new Event("fdc3Ready");
+                window.dispatchEvent(fdc3Ready);
+            } else {
+                win.fdc3 = await this.getOrCreateDesktopAgent("global");
+                await win.fdc3.leaveCurrentChannel();
+                for (const channel of linkerChannels) {
+                    await this.getOrCreateDesktopAgent(channel);
+                }
+            }
 
 			const updateAgents = async (err: any, response: any) => {
 				this.#log("FDC3Client: updateAgents", err, response);
