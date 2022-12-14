@@ -38,7 +38,7 @@
 		"@finsemble/finsemble-ui": "5.4.*",
 		"async": "3.2.0",
 		"compression": "1.7.3",
-		"express": "4.16.4",
+		"express": "4.17.3",
 		"react": "16.13.1",
 		"react-autosuggest": "^10.1.0",
 		"react-dom": "16.13.1",
